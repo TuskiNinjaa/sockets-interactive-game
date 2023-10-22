@@ -11,6 +11,7 @@ class ClientSender:
         self.type_create_account = "CREATE-ACCOUNT"
         self.type_list_user_on_line = "LIST-USER-ON-LINE"
         self.type_list_user_playing = "LIST-USER-PLAYING"
+        self.type_list_user_idle = "LIST-USER-IDLE"
         self.type_lobby = "LOBBY"
         self.type_game = "GAME"
 

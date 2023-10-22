@@ -17,8 +17,10 @@ class ServerReceiver:
         self.type_create_account = "CREATE-ACCOUNT"
         self.type_list_user_on_line = "LIST-USER-ON-LINE"
         self.type_list_user_playing = "LIST-USER-PLAYING"
+        self.type_list_user_idle = "LIST-USER-IDLE"
         self.type_lobby = "LOBBY"
         self.type_game = "GAME"
+        self.nick = "LOGGED_OUT"
         self.db_con = DataBase()
     
     def login_account_verification(self, request, address):
@@ -33,7 +35,7 @@ class ServerReceiver:
             response.update({"error": "User not found, check if name was spelled correctly or try creating a new account"})
             response.update({"logged": False})
         elif user[2] != password:
-            response.update( {"error": "Passwords do not match!"})
+            response.update({"error": "Passwords do not match!"})
             response.update({"logged": False})
         else:
             response.update({"full_name": user[0]})
@@ -41,6 +43,7 @@ class ServerReceiver:
             response.update({"logged": True})
             print("[%s] User %s login was made successfully, updating status and address" % (self.name, nickname))
             updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, address[0], address[1])
+            self.__handle_authentication(nickname)
 
             if updated:
                 print("[%s] User %s data updated successfully" % (self.name, nickname))
@@ -63,11 +66,15 @@ class ServerReceiver:
             response.update({"full_name": full_name})
             response.update({"nickname": nickname})
             response.update({"logged": True})
+            self.__handle_authentication(nickname)
         else:
             response.update({"error": "Error creating user, please check if user already exists or try again"})
             response.update({"logged": False})
 
         return response
+
+    def __handle_authentication(self, nick):
+        self.nick = nick
     
     def handle_menu_login(self):
         print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
@@ -94,18 +101,34 @@ class ServerReceiver:
     
     def list_user_on_line(self):
         # Implement a way to get user informations
-
         users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated= True)
-        user_on_line = [
-            ["Fulano_1", "Status_1", "IP_1", "PORT_1"],
-            ["Fulano_2", "Status_2", "IP_2", "PORT_2"],
-            ["Fulano_3", "Status_3", "IP_3", "PORT_3"],
-            ["Fulano_4", "Status_4", "IP_4", "PORT_4"]
-        ]
+
+        print("[%s] Requested users online by %s:\n %s" % (self.name, self.address, users))
+
+        users_formatted = []
+        for u in users:
+            users_formatted.append([u[1], u[4], u[5]])
 
         response = {
             "type": self.type_list_user_on_line,
-            "list": user_on_line
+            "list": users
+        }
+
+        return response
+
+    def list_user_idle(self):
+        # Implement a way to get user informations
+        users = self.db_con.get_by_status(ClientStatus.IDLE.value)
+
+        print("[%s] Requested users idle by %s:\n %s" % (self.name, self.address, users))
+
+        users_formatted = []
+        for u in users:
+            users_formatted.append([u[1], u[4], u[5]])
+
+        response = {
+            "type": self.type_list_user_idle,
+            "list": users
         }
 
         return response
@@ -113,14 +136,16 @@ class ServerReceiver:
     def list_user_playing(self):
         # Implement a way to get user informations
         users = self.db_con.get_by_status(ClientStatus.PLAYING.value)
-        user_playing = [
-            ["Fulano_1", "IP_1", "PORT_1", "Fulano_2", "IP_2", "PORT_2"],
-            ["Fulano_1", "IP_1", "PORT_1", "Fulano_3", "IP_3", "PORT_3"]
-        ] 
+
+        print("[%s] Requested users playing by %s:\n %s" % (self.name, self.address, users))
+
+        users_formatted = []
+        for u in users:
+            users_formatted.append([u[1], u[4], u[5]])
 
         response = {
             "type": self.type_list_user_playing,
-            "list": user_playing
+            "list": users_formatted
         }
 
         return response
@@ -172,8 +197,7 @@ class ServerReceiver:
             self.connection.close()
             print("[%s] Connection to %s is closed."%(self.name, self.address))
 
-            #TODO atualizar status do cliente para OFF
-            # self.db_con.update_connection(nickname, ClientStatus.IDLE.value, address[0], address[1])
+            self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))

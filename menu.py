@@ -138,8 +138,10 @@ class Menu:
                     self.option_list(self.sender.type_list_user_on_line)
                 elif option == 1: # LIST-USER-PLAYING
                     self.option_list(self.sender.type_list_user_playing)
+                elif option == 2:
+                    self.__start_connection()
                 elif option == 3: # Wait for an connection request
-                        self.option_wait_connection()
+                    self.option_wait_connection()
                 elif option == 4:
                     run_menu = False
                 else: # Invalid option
@@ -149,3 +151,36 @@ class Menu:
                 print("[%s] Select an valid option."%self.name)
             
             print(self.menu_string)
+
+    def __start_connection(self):
+        response = self.sender.request_receive(self.sender.type_list_user_idle)
+        list_received = response.get("list")
+        if not list_received:
+            print("[%s] No users available found, please try later\n" % self.name)
+            return
+
+        print("[%s] Request connection, choose one or more users:" % self.name)
+        template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
+        print(template.format("Index", "Nickname", "IP", "Port"))
+
+        for key, value in enumerate(list_received):
+            print(template.format(key, *value))
+
+        raw_users = input("Selected users:")
+        users_indices = raw_users.split(',')
+
+        selected_users = []
+
+        for i in users_indices:
+            selected_users.append(list_received[int(i)])
+
+            # self.__send_game_in(list_received[int(i)])
+
+        request = {
+            "type" : self.sender.type_game,
+        }
+
+    def __send_game_in(self, user):
+        #todo criar coneção com outro cliente perguntando se quer se conectar
+        #caso positivo avisar servidor
+

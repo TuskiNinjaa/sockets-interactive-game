@@ -1,6 +1,7 @@
 import sqlite3
 
-class DataBase():
+
+class DataBase:
     def __init__(self, db_path = None):
         self.db_path = db_path or "storage.db"
 
@@ -110,14 +111,14 @@ class DataBase():
             con = sqlite3.connect(self.db_path)
             cur = con.cursor()
             insert = """UPDATE users SET
-                                status = ?, ip = ?, port = ? WHERE nick = ?;"""
+                                status = ?, ip = ?, port = ? WHERE nick = ?"""
 
             data_tuple = (status, ip, port, nick)
             cur.execute(insert, data_tuple)
-            print("[%s] User %s data updated successfully" % (self.name, nick))
+            print("[DATABASE] User %s data updated successfully"%nick)
             success = True
         except sqlite3.Error as error:
-            print("[%s] ERROR: Error updating data from table\n" % self.name, error)
+            print("[DATABASE] ERROR: Error updating data from table\n", error)
         finally:
             if con:
                 con.commit()
@@ -130,7 +131,7 @@ class DataBase():
         try:
             con = sqlite3.connect(self.db_path)
             cur = con.cursor()
-            delete = """DELETE FROM users WHERE nick = ?;"""
+            delete = """DELETE FROM users WHERE nick = ?"""
 
             cur.execute(delete, (nick,))
             print("[%s] User %s data deleted successfully" % (self.name, nick))
@@ -150,7 +151,7 @@ class DataBase():
             cur = con.cursor()
             sql_select_query = """SELECT * FROM users WHERE status = ?"""
             if negated:
-                sql_select_query = """SELECT * FROM users WHERE status NOT ?"""
+                sql_select_query = """SELECT * FROM users WHERE status != ?"""
             cur.execute(sql_select_query, (status,))
 
             users = cur.fetchall()
