@@ -1,11 +1,15 @@
+import socket
 from sender import ClientSender
+from receiver.ClientReceiver import ClientReceiver
 from user import User
 from Message import Message
 
 class Menu:
-    def __init__(self, name, socket, buffer_size):
+    def __init__(self, name, server_socket, client_socket, buffer_size):
         self.name = name
-        self.sender = ClientSender(socket, buffer_size)
+        self.sender = ClientSender(server_socket, buffer_size)
+        self.buffer_size = buffer_size
+        self.client_socket = client_socket
         self.user = User()
 
         self.menu_string = "-------------------------"
@@ -15,6 +19,7 @@ class Menu:
     
     def exit_server(self):
         self.sender.request(Message.type_exit_server)
+        self.user.set_logged(False)
 
     def invalid_request(self):
         run_menu = True
@@ -109,31 +114,48 @@ class Menu:
 
         for line in list_received:
             print(template.format(*line))
-    
+
     def option_request_connection(self):
         response = self.sender.request_receive(Message.type_list_user_idle)
         list_received = response.get("list")
 
-        # print("[%s] Request connection, choose one or more users:" % self.name)
-        # template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
-        # print(template.format("Index", "Nickname", "IP", "Port"))
+        if len(list_received) == 0:
+            print("[%s] There are no users waiting for connection"%self.name)
+            return
 
-        # for key, value in enumerate(list_received):
-        #     print(template.format(key, *value))
+        print("[%s] Request connection, choose one or more users:" % self.name)
+        template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
+        print(template.format("Index", "Nickname", "IP", "Port"))
 
-        # raw_users = input("Selected users:")
-        # users_indices = raw_users.split(',')
+        for index, line in enumerate(list_received):
+            print(template.format(index, *line))
+        
+        user_index = input("[%s] Selected users (separate elements by ',')\nAnswer: "%self.name).split(',')
 
-        # selected_users = []
-        # for i in users_indices:
-        #     selected_users.append(list_received[int(i)])
-        #     # self.__send_game_in(list_received[int(i)])
+        sender_list = []
+        for i in user_index:
+            selected_user = list_received[int(i)]
 
-        # print("[%s] Selected users %s."%(selected_users))
+            try:
+                selected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                selected_socket.connect((selected_user[1], 1501))
+                sender = ClientSender(selected_socket, self.buffer_size)
 
-        print("[%s] Response: %s" %(self.name, response))
+                print(sender.request_receive(Message.type_game))
+
+                sender_list.append(sender)
+            except ConnectionRefusedError as e:
+                print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
+
+        print("[%s] End of function."%(self.name))
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
+        self.client_socket.listen(1)
+        connection, address = self.client_socket.accept()
+        receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size)
+
+        receiver.handle_connection()
+
         request = {
             "type": Message.type_game,
             "request": False
@@ -165,42 +187,7 @@ class Menu:
 
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
+            except IndexError as e:
+                print("[%s] Invalid index option."%self.name)
             
-<<<<<<< HEAD
             print(self.menu_string)
-=======
-            print(self.menu_string)
-
-    def __start_connection(self):
-        response = self.sender.request_receive(self.sender.type_list_user_idle)
-        list_received = response.get("list")
-        if not list_received:
-            print("[%s] No users available found, please try later\n" % self.name)
-            return
-
-        print("[%s] Request connection, choose one or more users:" % self.name)
-        template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
-        print(template.format("Index", "Nickname", "IP", "Port"))
-
-        for key, value in enumerate(list_received):
-            print(template.format(key, *value))
-
-        raw_users = input("Selected users:")
-        users_indices = raw_users.split(',')
-
-        selected_users = []
-
-        for i in users_indices:
-            selected_users.append(list_received[int(i)])
-
-            # self.__send_game_in(list_received[int(i)])
-
-        request = {
-            "type" : self.sender.type_game,
-        }
-
-    def __send_game_in(self, user):
-        print("")
-        #todo criar coneção com outro cliente perguntando se quer se conectar
-        #caso positivo avisar servidor
->>>>>>> cd6d6ddbd7108219205d20c8eb2a7f6c72fc298b

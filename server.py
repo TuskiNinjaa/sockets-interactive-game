@@ -41,6 +41,7 @@ class Server:
                 print("[%s] Active connections: %d" %(self.name, threading.active_count() - 1))
                 
         except (KeyboardInterrupt) as e:
+            receiver.exit_connection()
             self.shutdown_server()
 
 SERVER_NAME = "SERVER"

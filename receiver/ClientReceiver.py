@@ -1,5 +1,6 @@
+import pickle
 
-class ServerReceiver:
+class ClientReceiver:
     def __init__(self, name, connection, address, buffer_size):
         self.name = name
         self.connection = connection
@@ -11,7 +12,12 @@ class ServerReceiver:
 
     def handle_connection(self):
         try:
-            
+            request = pickle.loads(self.connection.recv(self.buffer_size))
+            response = "OK"
+            self.connection.send(pickle.dumps(response))
+
+            self.print_message("Client", "Request", request)
+            self.print_message("Client", "Response", response)
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))

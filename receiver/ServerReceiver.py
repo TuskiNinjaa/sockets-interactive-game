@@ -98,7 +98,8 @@ class ServerReceiver:
 
         users_formatted = []
         for u in users:
-            users_formatted.append([u[1], u[3], u[4], u[5]])
+            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
+                users_formatted.append([u[1], u[3], u[4], u[5]])
 
         response = {
             "type": Message.type_list_user_on_line,
@@ -112,10 +113,12 @@ class ServerReceiver:
 
         users_formatted = []
         for u in users:
-            users_formatted.append([u[1], u[3], u[4], u[5]])
+            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
+                users_formatted.append([u[1], u[4], u[5]])
+            
         response = {
             "type": Message.type_list_user_idle,
-            "list": users
+            "list": users_formatted
         }
 
         return response
@@ -126,7 +129,8 @@ class ServerReceiver:
 
         users_formatted = []
         for u in users:
-            users_formatted.append([u[1], u[4], u[5], u[1], u[4], u[5]]) # Not implemented
+            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
+                users_formatted.append([u[1], u[4], u[5], u[1], u[4], u[5]]) # Not implemented
 
         response = {
             "type": Message.type_list_user_playing,
@@ -171,6 +175,11 @@ class ServerReceiver:
             self.print_message("Lobby", "Request", request) # REMOVE debug
         
         return request
+    
+    def exit_connection(self):
+        self.connection.close()
+        self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")
+        print("[%s] Connection to %s is closed."%(self.name, self.address))
 
     def handle_connection(self):
         try:
@@ -179,11 +188,8 @@ class ServerReceiver:
             if request.get("type") == Message.type_lobby: # Verify if the user is logged
                 self.handle_menu_lobby()
             
-            self.connection.close()
-            print("[%s] Connection to %s is closed."%(self.name, self.address))
-
-            self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")
+            self.exit_connection()
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))
-            self.connection.close()
+            self.exit_connection()

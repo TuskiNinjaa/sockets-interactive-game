@@ -14,39 +14,54 @@ class Client:
         self.ip = ip
         self.port = port
 
-        self.socket = self.connect_to_server()
-        self.menu = Menu(name, self.socket, buffer_size)
+        self.server_socket = self.connect_to_server()
+        self.client_socket = self.start_host()
+        self.menu = Menu(name, self.server_socket, self.client_socket, buffer_size)
         self.user = User()
 
     def connect_to_server(self):
         try:
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.connect((self.server_ip, self.server_port))
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.connect((self.server_ip, self.server_port))
 
-            return client_socket
+            return server_socket
         
         except ConnectionRefusedError as e:
             print("[%s] ERROR: Unable to connect to server."%self.name)
     
     def disconnect_to_server(self):
         self.menu.exit_server()
-        self.socket.close()
+        self.server_socket.close()
         print("\n[%s] Disconnecting to server."%self.name)
+
+    def start_host(self):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        client_socket.bind((self.ip, self.port))
+        print("[%s] Initializing host at %s."%(self.name, (self.ip, self.port)))
+        return client_socket
+    
+    def shutdown_host(self):
+        self.client_socket.shutdown(socket.SHUT_RDWR)
+        self.client_socket.close()
+        print("\n[%s] Shutting down host."%self.name)
 
     def handle_connection(self):
         try:
-            if self.socket != None:
-                self.menu.login()
-                self.user = self.menu.get_user()
+            if self.server_socket == None:
+                return
+            
+            self.menu.login()
+            self.user = self.menu.get_user()
 
-                if self.user.logged == True:
-                    self.menu.lobby()
+            if self.user.logged == True:
+                self.menu.lobby()
 
-                self.disconnect_to_server()
+            self.disconnect_to_server()
 
         except (EOFError, BrokenPipeError) as e:
             print("[%s] ERROR: Connection to the server was lost. Try again later."%self.name)
-            self.socket.close()
+            self.server_socket.close()
 
         except KeyboardInterrupt as e:
             self.disconnect_to_server()
@@ -57,8 +72,8 @@ BUFFER_SIZE = 1024
 ENCODING = 'utf-8'
 
 CLIENT_NAME = "CLIENT"
-CLIENT_IP = "10.0.0.102"
-CLIENT_PORT = 1500
+CLIENT_IP = "localhost"
+CLIENT_PORT = 1501
 
 def main():
     client = Client(
