@@ -1,7 +1,7 @@
 import sys
 import socket
 import threading
-from receiver import ServerReceiver
+from receiver.ServerReceiver import ServerReceiver
 
 class Server:
     def __init__(self, name, ip, port, buffer_size, encoding):

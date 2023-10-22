@@ -1,5 +1,6 @@
 from sender import ClientSender
 from user import User
+from Message import Message
 
 class Menu:
     def __init__(self, name, socket, buffer_size):
@@ -13,7 +14,7 @@ class Menu:
         return self.user
     
     def exit_server(self):
-        self.sender.request(self.sender.type_exit_server)
+        self.sender.request(Message.type_exit_server)
 
     def invalid_request(self):
         run_menu = True
@@ -38,7 +39,7 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"      : self.sender.type_login,
+            "type"      : Message.type_login,
             "nickname"  : nickname,
             "password"  : password
         }
@@ -51,7 +52,7 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"       : self.sender.type_create_account,
+            "type"       : Message.type_create_account,
             "full_name"  : full_name,
             "nickname"   : nickname,
             "password"   : password
@@ -66,7 +67,7 @@ class Menu:
 
             if response.get("logged"):
                 self.user.set_info(response.get("full_name"), response.get("nickname"), True)
-                self.sender.request(self.sender.type_lobby)
+                self.sender.request(Message.type_lobby)
                 return False
 
             run_request = self.invalid_request()
@@ -97,30 +98,45 @@ class Menu:
         response = self.sender.request_receive(request_type)
         list_received = response.get("list")
 
-        if request_type == self.sender.type_list_user_on_line:
+        if request_type == Message.type_list_user_on_line:
             template = "|{:^15}|{:^10}|{:^15}|{:^5}|"
+            print(self.menu_string)
             print(template.format("Nickname", "Status", "IP", "Port"))
         else:
-            template = "{:15} ({:>15}:{:5}) x {:15} ({:>15}:{:5})"
-            print("Host Nickname (IP:Port) x Player Nickname (IP:Port)")
+            template = "{:15} ({:^15}:{:5}) x {:15} ({:^15}:{:5})"
+            print(self.menu_string)
+            print(template.format("Host Nickname", "IP", "Port", "Player Nickname", "IP", "Port"))
 
         for line in list_received:
             print(template.format(*line))
+    
+    def option_request_connection(self):
+        response = self.sender.request_receive(Message.type_list_user_idle)
+        list_received = response.get("list")
 
-    def option_request_connection(self): # Implements the process of requesting the star of a game
-        request = {
-            "type": self.sender.type_game,
-            "status": True
-        }
+        # print("[%s] Request connection, choose one or more users:" % self.name)
+        # template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
+        # print(template.format("Index", "Nickname", "IP", "Port"))
 
-        response = self.sender.request_receive_message(request)
+        # for key, value in enumerate(list_received):
+        #     print(template.format(key, *value))
+
+        # raw_users = input("Selected users:")
+        # users_indices = raw_users.split(',')
+
+        # selected_users = []
+        # for i in users_indices:
+        #     selected_users.append(list_received[int(i)])
+        #     # self.__send_game_in(list_received[int(i)])
+
+        # print("[%s] Selected users %s."%(selected_users))
 
         print("[%s] Response: %s" %(self.name, response))
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         request = {
-            "type": self.sender.type_game,
-            "status": False
+            "type": Message.type_game,
+            "request": False
         }
 
         response = self.sender.request_receive_message(request)
@@ -135,11 +151,11 @@ class Menu:
                 option = int(input("[%s] Select an option:\n0 - LIST-USER-ON-LINE\n1 - LIST-USER-PLAYING\n2 - Request connection\n3 - Wait for request\n4 - Exit\nAnswer: "%(self.name)))
 
                 if option == 0: # LIST-USER-ON-LINE
-                    self.option_list(self.sender.type_list_user_on_line)
+                    self.option_list(Message.type_list_user_on_line)
                 elif option == 1: # LIST-USER-PLAYING
-                    self.option_list(self.sender.type_list_user_playing)
-                elif option == 2:
-                    self.__start_connection()
+                    self.option_list(Message.type_list_user_playing)
+                elif option == 2: # Request an connection with other players
+                    self.option_request_connection()
                 elif option == 3: # Wait for an connection request
                     self.option_wait_connection()
                 elif option == 4:
@@ -151,36 +167,4 @@ class Menu:
                 print("[%s] Select an valid option."%self.name)
             
             print(self.menu_string)
-
-    def __start_connection(self):
-        response = self.sender.request_receive(self.sender.type_list_user_idle)
-        list_received = response.get("list")
-        if not list_received:
-            print("[%s] No users available found, please try later\n" % self.name)
-            return
-
-        print("[%s] Request connection, choose one or more users:" % self.name)
-        template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
-        print(template.format("Index", "Nickname", "IP", "Port"))
-
-        for key, value in enumerate(list_received):
-            print(template.format(key, *value))
-
-        raw_users = input("Selected users:")
-        users_indices = raw_users.split(',')
-
-        selected_users = []
-
-        for i in users_indices:
-            selected_users.append(list_received[int(i)])
-
-            # self.__send_game_in(list_received[int(i)])
-
-        request = {
-            "type" : self.sender.type_game,
-        }
-
-    def __send_game_in(self, user):
-        #todo criar coneção com outro cliente perguntando se quer se conectar
-        #caso positivo avisar servidor
 
