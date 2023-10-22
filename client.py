@@ -41,7 +41,6 @@ class Client:
 
                 if self.user.logged == True:
                     self.menu.lobby()
-                elif
 
                 self.disconnect_to_server()
 

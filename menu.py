@@ -181,6 +181,7 @@ class Menu:
         }
 
     def __send_game_in(self, user):
+        print("")
         #todo criar coneção com outro cliente perguntando se quer se conectar
         #caso positivo avisar servidor
 
