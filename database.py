@@ -88,10 +88,7 @@ class DataBase:
             user = self.fetch_data(nick)
             if user:
                 print("[DATABASE] User %s already exists, skipping creation" % nick)
-                if con:
-                    con.commit()
-                    con.close()
-                return True
+                return False
             insert = """INSERT INTO users
                          (username ,nick, password, status, ip, port) 
                          VALUES (?, ?, ?, ?, ?, ?);"""

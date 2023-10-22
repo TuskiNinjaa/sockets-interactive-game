@@ -168,8 +168,6 @@ class Menu:
             
             print(self.menu_string)
 
-<<<<<<< HEAD
-=======
     def __start_connection(self):
         response = self.sender.request_receive(self.sender.type_list_user_idle)
         list_received = response.get("list")
@@ -202,5 +200,3 @@ class Menu:
         print("")
         #todo criar coneção com outro cliente perguntando se quer se conectar
         #caso positivo avisar servidor
-
->>>>>>> 4032e58a85eb3f9c4ece37e963f5a4f10a71f180
