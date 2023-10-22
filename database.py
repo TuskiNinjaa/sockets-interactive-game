@@ -1,5 +1,7 @@
 import sqlite3
 
+from GameStatus import GameStatus
+
 
 class DataBase:
     def __init__(self, db_path = None):
@@ -51,6 +53,7 @@ class DataBase:
            CREATE TABLE games(
                 host_nick text,
                 players text,
+                status text,
                 winner text NULLABLE
                )''')
         print("[DATABASE] Table games created successfully")
@@ -95,7 +98,7 @@ class DataBase:
             print("[DATABASE] User %s data saved successfully"%nick)
             success = True
         except sqlite3.Error as error:
-            print("[DATABASE] ERROR: Error saving data from table\n", error)
+            print("[DATABASE] ERROR: Error saving data from table users\n", error)
         finally:
             if con:
                 con.commit()
@@ -115,7 +118,7 @@ class DataBase:
             print("[DATABASE] User %s data saved successfully"% nick)
             success = True
         except sqlite3.Error as error:
-            print("[DATABASE] ERROR: Error saving data from table\n", error)
+            print("[DATABASE] ERROR: Error saving data from table users\n", error)
         finally:
             if con:
                 con.commit()
@@ -136,7 +139,7 @@ class DataBase:
             print("[DATABASE] User %s data updated successfully"%nick)
             success = True
         except sqlite3.Error as error:
-            print("[DATABASE] ERROR: Error updating data from table\n", error)
+            print("[DATABASE] ERROR: Error updating data from table users\n", error)
         finally:
             if con:
                 con.commit()
@@ -155,7 +158,7 @@ class DataBase:
             print("[%s] User %s data deleted successfully" % (self.name, nick))
             success = True
         except sqlite3.Error as error:
-            print("[%s] ERROR: Error deleting data from table\n" % self.name, error)
+            print("[%s] ERROR: Error deleting data from table users\n" % self.name, error)
         finally:
             if con:
                 con.commit()
@@ -178,11 +181,53 @@ class DataBase:
                 print("[DATABASE] INFO: Queried users with status %s, but none found" % status)
 
         except sqlite3.Error as error:
-            print("[DATABASE] ERROR: Error reading data from table\n", error)
+            print("[DATABASE] ERROR: Error reading data from table users\n", error)
         finally:
             if con:
                 con.commit()
                 con.close()
 
         return users
+
+    def create_game(self, host, players):
+        success = False
+        try:
+            con = sqlite3.connect(self.db_path)
+            cur = con.cursor()
+            insert = """INSERT INTO games
+                                     (host_nick, players, status, winner) 
+                                     VALUES (?, ?, ?, NULL);"""
+            cur.execute(insert, (host, players, GameStatus.RUNNING.value))
+
+            success = True
+
+        except sqlite3.Error as error:
+            print("[DATABASE] ERROR: Error saving data in table games\n", error)
+        finally:
+            if con:
+                con.commit()
+                con.close()
+
+        return success
+
+    def update_game(self, host, status, winner):
+        success = False
+        try:
+            con = sqlite3.connect(self.db_path)
+            cur = con.cursor()
+            insert = """UPDATE games SET
+                                       status = ?, winner = ? WHERE host_nick = ?"""
+
+            data_tuple = (status, winner, host)
+            cur.execute(insert, data_tuple)
+            print("[DATABASE] Game from host %s data updated successfully" % host)
+            success = True
+        except sqlite3.Error as error:
+            print("[DATABASE] ERROR: Error updating data from table games\n", error)
+        finally:
+            if con:
+                con.commit()
+                con.close()
+
+        return success
 

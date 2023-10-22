@@ -153,10 +153,18 @@ class ServerReceiver:
     def handle_game(self, request):
         # Update the state of the player
         print("[%s] Handling exit game state. Request: %s"%(self.name, request))
+
+        host_nick = request.get("host")
+        players = request.get("players")
+
+        for p in players:
+            self.db_con.update_status(p[0], ClientStatus.PLAYING.value)
+
+        success = self.db_con.create_game(host_nick, players)
         
         response = {
             "type": self.type_game,
-            "status": request.get("status")
+            "success": success
         }
         
         return response
