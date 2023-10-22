@@ -20,16 +20,13 @@ class Menu:
         while run_menu:
             try:
                 option = int(input("[%s] Invalid request. Select an option:\n0 - Try again\n1 - Exit\nAnswer: " %(self.name)))
-            
-                match option:
-                    case 0: # Try again
-                        return True
 
-                    case 1: # Exit menu
-                        return False
-
-                    case _: # Invalid option
-                        print("[%s] Select an valid option."%self.name)
+                if option == 0: # Try again
+                    return True
+                elif option == 1: # Exit menu
+                    return False
+                else:
+                    print("[%s] Select an valid option." % self.name)
         
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
@@ -82,19 +79,15 @@ class Menu:
             try:
                 option = int(input("[%s] Select an option:\n0 - Login\n1 - Create account\n2 - Exit\nAnswer: "%(self.name)))
 
-                match option:
-                    case 0: # Simple login
-                        run_menu = self.option_account(self.option_login_account)
-                        
-                    case 1: # Account creation and login
-                        run_menu = self.option_account(self.option_create_account)
-
-                    case 2: # Exit
-                        run_menu = False
-
-                    case _: # Invalid option
+                if option == 0: # Simple login
+                    run_menu = self.option_account(self.option_login_account)
+                elif option == 1: # Account creation and login
+                    run_menu = self.option_account(self.option_create_account)
+                elif option == 2:
+                    run_menu = False
+                else: # Invalid option
                         print("[%s] Select an valid option."%self.name)
-        
+
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
 
@@ -141,23 +134,15 @@ class Menu:
             try:
                 option = int(input("[%s] Select an option:\n0 - LIST-USER-ON-LINE\n1 - LIST-USER-PLAYING\n2 - Request connection\n3 - Wait for request\n4 - Exit\nAnswer: "%(self.name)))
 
-                match option:
-                    case 0: # LIST-USER-ON-LINE
-                        self.option_list(self.sender.type_list_user_on_line)
-                        
-                    case 1: # LIST-USER-PLAYING
-                        self.option_list(self.sender.type_list_user_playing)
-                    
-                    case 2: # Request connection to player
-                        self.option_request_connection()
-
-                    case 3: # Wait for an connection request
+                if option == 0: # LIST-USER-ON-LINE
+                    self.option_list(self.sender.type_list_user_on_line)
+                elif option == 1: # LIST-USER-PLAYING
+                    self.option_list(self.sender.type_list_user_playing)
+                elif option == 3: # Wait for an connection request
                         self.option_wait_connection()
-
-                    case 4: # Exit menu
-                        run_menu = False
-
-                    case _: # Invalid option
+                elif option == 4:
+                    run_menu = False
+                else: # Invalid option
                         print("[%s] Select an valid option."%self.name)
 
             except ValueError as e: # Invalid option

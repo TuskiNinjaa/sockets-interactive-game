@@ -44,7 +44,7 @@ class Server:
             self.shutdown_server()
 
 SERVER_NAME = "SERVER"
-SERVER_IP = "10.0.0.102"
+SERVER_IP = "localhost"
 SERVER_PORT = 2001
 BUFFER_SIZE = 1024
 ENCODING = 'utf-8'

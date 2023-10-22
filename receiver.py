@@ -1,6 +1,10 @@
 import socket
 import pickle
 
+from ClientStatus import ClientStatus
+from database import DataBase
+
+
 class ServerReceiver:
     def __init__(self, name, connection, address, buffer_size):
         self.name = name
@@ -15,37 +19,53 @@ class ServerReceiver:
         self.type_list_user_playing = "LIST-USER-PLAYING"
         self.type_lobby = "LOBBY"
         self.type_game = "GAME"
+        self.db_con = DataBase()
     
-    def login_account_verification(self, request):
+    def login_account_verification(self, request, address):
         # Implementation the process of verification of the login account and make return True or False if the user is online        
         nickname = request.get("nickname")
         password = request.get("password")
 
+        user = self.db_con.fetch_data(nickname)
+
         response = {"type": self.type_login}
-        if nickname == "wrong_nickname" or password == "wrong_password":
-            # Condition when something went wrong on login
+        if not user:
+            response.update({"error": "User not found, check if name was spelled correctly or try creating a new account"})
+            response.update({"logged": False})
+        elif user[2] != password:
+            response.update( {"error": "Passwords do not match!"})
             response.update({"logged": False})
         else:
-            response.update({"full_name": "FullNameSample"})
+            response.update({"full_name": user[0]})
             response.update({"nickname": nickname})
             response.update({"logged": True})
+            print("[%s] User %s login was made successfully, updating status and address" % (self.name, nickname))
+            updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, address[0], address[1])
+
+            if updated:
+                print("[%s] User %s data updated successfully" % (self.name, nickname))
 
         return response
     
-    def create_account_verification(self, request):
+    def create_account_verification(self, request, address):
         # Implementation of the process of profile creation and login on new account if possible
         full_name = request.get("full_name")
         nickname = request.get("nickname")
         password = request.get("password")
 
+        print("address got", address)
+
+        success = self.db_con.save_data(nickname, full_name, password, ClientStatus.IDLE.value, address[0], address[1])
+
         response = {"type": self.type_create_account}
-        if full_name == "wrong_full_name" or nickname == "wrong_nickname" or password == "wrong_password":
-            #Condition when something went wrong on account creation
-            response.update({"logged": False})
-        else:
+        if success:
+            print("[%s] User %s registration was made successfully" % (self.name, nickname))
             response.update({"full_name": full_name})
             response.update({"nickname": nickname})
             response.update({"logged": True})
+        else:
+            response.update({"error": "Error creating user, please check if user already exists or try again"})
+            response.update({"logged": False})
 
         return response
     
@@ -55,15 +75,14 @@ class ServerReceiver:
         print("[%s] LOGIN\nRequest: %s\nAddress: %s" %(self.name, request, self.address))
 
         while request.get("type") != self.type_lobby and request.get("type") != self.type_exit_server:
-            match request.get("type"):
-                case self.type_login:
-                    response = self.login_account_verification(request)
+            login_type = request.get("type")
 
-                case self.type_create_account:
-                    response = self.create_account_verification(request)
-
-                case _:
-                    response = "[%s] Unknown type of request."%self.name
+            if login_type == self.type_login:
+                response = self.login_account_verification(request, self.address)
+            elif login_type == self.type_create_account:
+                response = self.create_account_verification(request, self.address)
+            else:
+                response = "[%s] Unknown type of request." % self.name
 
             print("[%s] LOGIN\nResponse: %s\nAddress: %s"%(self.name, response, self.address))
 
@@ -76,6 +95,7 @@ class ServerReceiver:
     def list_user_on_line(self):
         # Implement a way to get user informations
 
+        users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated= True)
         user_on_line = [
             ["Fulano_1", "Status_1", "IP_1", "PORT_1"],
             ["Fulano_2", "Status_2", "IP_2", "PORT_2"],
@@ -92,7 +112,7 @@ class ServerReceiver:
     
     def list_user_playing(self):
         # Implement a way to get user informations
-        
+        users = self.db_con.get_by_status(ClientStatus.PLAYING.value)
         user_playing = [
             ["Fulano_1", "IP_1", "PORT_1", "Fulano_2", "IP_2", "PORT_2"],
             ["Fulano_1", "IP_1", "PORT_1", "Fulano_3", "IP_3", "PORT_3"]
@@ -123,18 +143,16 @@ class ServerReceiver:
         print("[%s] LOBBY\nRequest: %s\nAddress: %s" %(self.name, request, self.address))
 
         while request.get("type") != self.type_exit_server:
-            match request.get("type"):
-                case self.type_list_user_on_line:
-                    response = self.list_user_on_line()
+            request_type =  request.get("type")
 
-                case self.type_list_user_playing:
-                    response = self.list_user_playing()
-
-                case self.type_game:
-                    response = self.handle_game(request)
-
-                case _:
-                    response = "[%s] Unknown type of request."%self.name
+            if request_type == self.type_list_user_on_line:
+                response = self.list_user_on_line()
+            elif request_type == self.type_list_user_playing:
+                response = self.list_user_playing()
+            elif request_type == self.type_game:
+                response = self.handle_game(request)
+            else:
+                response = "[%s] Unknown type of request." % self.name
 
             print("[%s] LOBBY\nResponse: %s\nAddress: %s"%(self.name, response, self.address))
 
@@ -153,6 +171,9 @@ class ServerReceiver:
             
             self.connection.close()
             print("[%s] Connection to %s is closed."%(self.name, self.address))
+
+            #TODO atualizar status do cliente para OFF
+            # self.db_con.update_connection(nickname, ClientStatus.IDLE.value, address[0], address[1])
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))
