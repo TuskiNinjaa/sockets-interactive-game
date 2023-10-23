@@ -62,10 +62,10 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"       : Message.type_create_account.value,
-            "full_name"  : full_name,
-            "nickname"   : nickname,
-            "password"   : password,
+            "type"      : Message.type_create_account.value,
+            "full_name" : full_name,
+            "nickname"  : nickname,
+            "password"  : password,
             "ip"        : self.client_ip,
             "port"      : self.client_port
         }

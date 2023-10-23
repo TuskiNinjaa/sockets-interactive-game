@@ -1,7 +1,6 @@
 
 from enum import Enum
 
-
 class Message(Enum):
     type_exit_server = "EXIT-SERVER"
     type_login = "LOGIN"
