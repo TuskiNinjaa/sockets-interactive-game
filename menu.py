@@ -1,16 +1,19 @@
 import socket
+import threading
 from sender import ClientSender
 from receiver.ClientReceiver import ClientReceiver
 from user import User
 from Message import Message
 
 class Menu:
-    def __init__(self, name, server_socket, client_socket, buffer_size):
+    def __init__(self, name, server_socket, client_socket, buffer_size, client_ip, client_port):
         self.name = name
         self.sender = ClientSender(server_socket, buffer_size)
         self.buffer_size = buffer_size
         self.client_socket = client_socket
         self.user = User()
+        self.client_ip = client_ip
+        self.client_port = client_port
 
         self.menu_string = "-------------------------"
         
@@ -46,7 +49,9 @@ class Menu:
         request = {
             "type"      : Message.type_login.value,
             "nickname"  : nickname,
-            "password"  : password
+            "password"  : password,
+            "ip"        : self.client_ip,
+            "port"      : self.client_port
         }
 
         return self.sender.request_receive_message(request)
@@ -60,7 +65,9 @@ class Menu:
             "type"       : Message.type_create_account.value,
             "full_name"  : full_name,
             "nickname"   : nickname,
-            "password"   : password
+            "password"   : password,
+            "ip"        : self.client_ip,
+            "port"      : self.client_port
         }
 
         return self.sender.request_receive_message(request)
@@ -162,11 +169,13 @@ class Menu:
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
-        self.__communicate_waiting_connection(address)
         receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size)
 
-        receiver.handle_connection()
+        thread = threading.Thread(target=self.just_wait, args=())
+        thread.daemon = True
+        thread.start()
 
+        self.__communicate_waiting_connection(address)
         request = {
             "type": Message.type_game.value,
             "request": False

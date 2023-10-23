@@ -16,7 +16,7 @@ class Client:
 
         self.server_socket = self.connect_to_server()
         self.client_socket = self.start_host()
-        self.menu = Menu(name, self.server_socket, self.client_socket, buffer_size)
+        self.menu = Menu(name, self.server_socket, self.client_socket, buffer_size, ip, port)
         self.user = User()
 
     def connect_to_server(self):
