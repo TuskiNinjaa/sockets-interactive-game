@@ -140,6 +140,7 @@ class ServerReceiver:
 
         for u in players:
             log(Logs.CLIENT_ACTIVE, u)
+            self.db_con.update_status(u, ClientStatus.PLAYING.value)
 
         log(Logs.GAME_STARTED, players)
 
