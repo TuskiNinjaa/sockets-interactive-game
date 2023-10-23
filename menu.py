@@ -113,9 +113,9 @@ class Menu:
             print(self.menu_string)
             print(template.format("Nickname", "Status", "IP", "Port"))
         else:
-            template = "{:15} ({:^15}:{:5}) x {:15} ({:^15}:{:5})"
+            template = "{:15} ({:^15}:{:5})"
             print(self.menu_string)
-            print(template.format("Host Nickname", "IP", "Port", "Player Nickname", "IP", "Port"))
+            print(template.format("Nickname", "IP", "Port"))
 
         for line in list_received:
             print(template.format(*line))

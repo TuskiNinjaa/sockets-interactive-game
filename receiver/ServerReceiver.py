@@ -122,7 +122,7 @@ class ServerReceiver:
         users_formatted = []
         for u in users:
             if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
-                users_formatted.append([u[1], u[4], u[5], u[1], u[4], u[5]]) # Not implemented
+                users_formatted.append([u[1], u[4], u[5]])
 
         response = {
             "type": Message.type_list_user_playing.value,
