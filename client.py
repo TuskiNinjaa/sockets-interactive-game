@@ -16,7 +16,7 @@ class Client:
 
         self.server_socket = self.connect_to_server()
         self.client_socket = self.start_host()
-        self.menu = Menu(name, self.server_socket, self.client_socket, buffer_size, ip, port)
+        self.menu = Menu(name, self.server_socket, self.client_socket, buffer_size)
         self.user = User()
 
     def connect_to_server(self):
@@ -38,7 +38,7 @@ class Client:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         client_socket.bind((self.ip, self.port))
-        print("[%s] Initializing host at %s."%(self.name, (self.ip, self.port)))
+        print("[%s] Initializing host at %s."%(self.name, client_socket.getsockname()))
         return client_socket
     
     def shutdown_host(self):
@@ -73,7 +73,7 @@ ENCODING = 'utf-8'
 
 CLIENT_NAME = "CLIENT"
 CLIENT_IP = "localhost"
-CLIENT_PORT = 1501
+CLIENT_PORT = 0
 
 def main():
     client = Client(

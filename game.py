@@ -14,18 +14,15 @@ class Game:
         run_read_input = True
         while run_read_input:
             try:
-            finger_num = int(input('Informe a quantia de dedos escolhida: '))
-        
-            if(finger_num > 10 or finger_num < 0): #Invalid option
-                finger_num = int(input('Error, type a number between 0 and 10: '))
-            else:
-                return(finger_num)
-                run_read_input = False
+                finger_num = int(input('Informe a quantia de dedos escolhida: '))
+            
+                if(finger_num > 10 or finger_num < 0): #Invalid option
+                    finger_num = int(input('Error, type a number between 0 and 10: '))
+                else:
+                    return(finger_num)
                 
             except ValueError:
                 print("Error. Type a number between 0 and 10")
-
-
 
     def execute_round(self, lista):
         self.lista = lista
@@ -43,17 +40,12 @@ class Game:
             posicao = 0
             contador = 1
             while(contador != soma_t):
-            if(posicao < tam_n):
-                if(posicao == (tam_n-1)):
-                posicao = 0
-                else:
-                posicao += 1
+                if(posicao < tam_n):
+                    if(posicao == (tam_n-1)):
+                        posicao = 0
+                    else:
+                        posicao += 1
                 
             contador += 1
         
             return(posicao)
-        
-        
-
-        
-

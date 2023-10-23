@@ -6,14 +6,12 @@ from user import User
 from Message import Message
 
 class Menu:
-    def __init__(self, name, server_socket, client_socket, buffer_size, client_ip, client_port):
+    def __init__(self, name, server_socket, client_socket, buffer_size):
         self.name = name
         self.sender = ClientSender(server_socket, buffer_size)
         self.buffer_size = buffer_size
         self.client_socket = client_socket
         self.user = User()
-        self.client_ip = client_ip
-        self.client_port = client_port
 
         self.menu_string = "-------------------------"
         
@@ -50,8 +48,8 @@ class Menu:
             "type"      : Message.type_login.value,
             "nickname"  : nickname,
             "password"  : password,
-            "ip"        : self.client_ip,
-            "port"      : self.client_port
+            "ip"        : self.client_socket.getsockname()[0],
+            "port"      : self.client_socket.getsockname()[1]
         }
 
         return self.sender.request_receive_message(request)
@@ -66,8 +64,8 @@ class Menu:
             "full_name" : full_name,
             "nickname"  : nickname,
             "password"  : password,
-            "ip"        : self.client_ip,
-            "port"      : self.client_port
+            "ip"        : self.client_socket.getsockname()[0],
+            "port"      : self.client_socket.getsockname()[1]
         }
 
         return self.sender.request_receive_message(request)
@@ -123,7 +121,7 @@ class Menu:
             print(template.format(*line))
 
     def option_request_connection(self):
-        response = self.sender.request_receive(Message.type_list_user_ready_to_play.value)
+        response = self.sender.request_receive(Message.type_list_user_on_line.value)
         list_received = response.get("list")
 
         if len(list_received) == 0:
@@ -131,8 +129,8 @@ class Menu:
             return
 
         print("[%s] Request connection, choose one or more users:" % self.name)
-        template = "{:^5} - |{:^15}|{:^15}|{:^5}|"
-        print(template.format("Index", "Nickname", "IP", "Port"))
+        template = "{:^5} - {:^15}|{:^10}|{:^15}|{:^5}|"
+        print(template.format("Index", "Nickname", "Status", "IP", "Port"))
 
         for index, line in enumerate(list_received):
             print(template.format(index, *line))
@@ -140,39 +138,38 @@ class Menu:
         user_index = input("[%s] Selected users (separate elements by ',')\nAnswer: "%self.name).split(',')
 
         sender_list = []
+        nickname_list = [self.user.nickname]
         for i in user_index:
             selected_user = list_received[int(i)]
 
             try:
                 selected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                selected_socket.connect((selected_user[1], 1501))
+                selected_socket.connect((selected_user[2], int(selected_user[3])))
                 sender = ClientSender(selected_socket, self.buffer_size)
 
                 print(sender.request_receive(Message.type_game.value))
 
                 sender_list.append(sender)
+                nickname_list.append(selected_user[0])
             except ConnectionRefusedError as e:
                 print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
 
-        print("[%s] End of function."%(self.name))
+        request = {
+            "type": Message.type_game.value,
+            "list": nickname_list
+        }
+        response = self.sender.request_receive_message(request)
+
+        print("[%s] End of function. Response: %s"%(self.name, response))
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
         receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size)
-
-        thread = threading.Thread(target=self.just_wait, args=())
-        thread.daemon = True
-        thread.start()
-
-        request = {
-            "type": Message.type_game.value,
-            "request": False
-        }
-
-        response = self.sender.request_receive_message(request)
-
-        print("[%s] Response: %s" %(self.name, response))
+        receiver.handle_connection()
+        # thread = threading.Thread(target=self.just_wait, args=())
+        # thread.daemon = True
+        # thread.start()
 
     def lobby(self):
         run_menu = True

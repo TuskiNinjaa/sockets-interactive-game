@@ -12,12 +12,14 @@ class ClientReceiver:
 
     def handle_connection(self):
         try:
+            # Implementation of the player
             request = pickle.loads(self.connection.recv(self.buffer_size))
             response = "OK"
             self.connection.send(pickle.dumps(response))
 
             self.print_message("Client", "Request", request)
             self.print_message("Client", "Response", response)
+            self.connection.close()
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))

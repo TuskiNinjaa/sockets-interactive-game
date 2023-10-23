@@ -100,26 +100,11 @@ class ServerReceiver:
 
         users_formatted = []
         for u in users:
-            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
+            if self.nick != u[1]:
                 users_formatted.append([u[1], u[3], u[4], u[5]])
 
         response = {
             "type": Message.type_list_user_on_line.value,
-            "list": users_formatted
-        }
-
-        return response
-
-    def list_user_ready_to_play(self):
-        users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated=False)
-
-        users_formatted = []
-        for u in users:
-            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
-                users_formatted.append([u[1], u[4], u[5]])
-            
-        response = {
-            "type": Message.type_list_user_ready_to_play.value,
             "list": users_formatted
         }
 
@@ -142,14 +127,16 @@ class ServerReceiver:
         return response
 
     def handle_game_status(self, request):
-        # Update the status of the user
+        # Update the status of the user request.get("list")
+
+        print("[Handling with the status of the players]")
+
         response = {
             "type": Message.type_game.value,
-            "status": request.get("status")
+            "status": "Porfavor acaba!"
         }
         
         return response
-
 
     def handle_menu_lobby(self):
         print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
@@ -164,8 +151,6 @@ class ServerReceiver:
                 response = self.list_user_on_line()
             elif request_type == Message.type_list_user_playing.value:
                 response = self.list_user_playing()
-            elif request_type == Message.type_list_user_ready_to_play.value:
-                response = self.list_user_ready_to_play()
             elif request_type == Message.type_game.value:
                 response = self.handle_game_status(request)
             else:
