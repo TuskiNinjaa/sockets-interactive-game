@@ -21,6 +21,8 @@ class ServerReceiver:
         # Implementation the process of verification of the login account and make return True or False if the user is online        
         nickname = request.get("nickname")
         password = request.get("password")
+        ip = request.get("ip")
+        port = request.get("port")
 
         user = self.db_con.fetch_data(nickname)
 
@@ -36,7 +38,7 @@ class ServerReceiver:
             response.update({"nickname": nickname})
             response.update({"logged": True})
             print("[%s] User %s login was made successfully, updating status and address" % (self.name, nickname))
-            updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, "", "")
+            updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, ip, port)
             self.__handle_authentication(nickname)
 
             if updated:
@@ -49,10 +51,10 @@ class ServerReceiver:
         full_name = request.get("full_name")
         nickname = request.get("nickname")
         password = request.get("password")
+        ip = request.get("ip")
+        port = request.get("port")
 
-        print("address got", address)
-
-        success = self.db_con.save_data(nickname, full_name, password, ClientStatus.IDLE.value, "", "")
+        success = self.db_con.save_data(nickname, full_name, password, ClientStatus.IDLE.value, ip, port)
 
         response = {"type": Message.type_login.value}
         if success:
@@ -109,7 +111,7 @@ class ServerReceiver:
         return response
 
     def list_user_ready_to_play(self):
-        users = self.db_con.get_by_status(ClientStatus.READY_TO_CONNECT.value)
+        users = self.db_con.get_by_status(ClientStatus.IDLE.value)
         users_playing = self.db_con.get_by_status(ClientStatus.PLAYING.value)
 
         users_formatted = []
@@ -149,11 +151,6 @@ class ServerReceiver:
         
         return response
 
-    def __handle_user_ready(self, request):
-        ip = request.get("ip")
-        port = request.get("port")
-
-        self.db_con.update_connection(self.nick, ClientStatus.READY_TO_CONNECT.value, ip, port)
 
     def handle_menu_lobby(self):
         print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
@@ -172,8 +169,6 @@ class ServerReceiver:
                 response = self.list_user_ready_to_play()
             elif request_type == Message.type_game.value:
                 response = self.handle_game_status(request)
-            elif request_type == Message.type_setup_client_ready.value:
-                response = self.handle_user_ready(request)
             else:
                 response = "[%s] Unknown type of request." % self.name
 

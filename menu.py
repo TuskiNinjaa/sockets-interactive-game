@@ -156,16 +156,6 @@ class Menu:
 
         print("[%s] End of function."%(self.name))
 
-    def __communicate_waiting_connection(self, address):
-        print("[%s] Telling server user is ready to be receive connections in address %s." % (self.name, address))
-        request = {
-            "type": Message.type_setup_client_ready.value,
-            "ip": address[0],
-            "port": address[1]
-        }
-
-        self.sender.request_receive_message(request)
-
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
@@ -175,7 +165,6 @@ class Menu:
         thread.daemon = True
         thread.start()
 
-        self.__communicate_waiting_connection(address)
         request = {
             "type": Message.type_game.value,
             "request": False
