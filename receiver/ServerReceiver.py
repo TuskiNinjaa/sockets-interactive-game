@@ -40,7 +40,6 @@ class ServerReceiver:
             response.update({"nickname": nickname})
             response.update({"logged": True})
             print("[%s] User %s login was made successfully, updating status and address" % (self.name, nickname))
-            log(Logs.CLIENT_ACTIVE, nickname)
             updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, ip, port)
             self.__handle_authentication(nickname)
 
@@ -75,8 +74,9 @@ class ServerReceiver:
 
     def __handle_authentication(self, nick):
         self.nick = nick
+        log(Logs.CLIENT_CONNECTED, nick)
         log(Logs.CLIENT_INACTIVE, nick)
-    
+
     def handle_menu_login(self):
         print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
         request = pickle.loads(self.connection.recv(self.buffer_size))
