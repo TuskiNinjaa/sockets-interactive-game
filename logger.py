@@ -3,12 +3,13 @@ from datetime import datetime
 
 
 class Logs(Enum):
-    CLIENT_CONNECTED = ('CLIENT_CONNECTED', " %s  - Usuário {0} conectou-se \n")
-    CLIENT_NOT_RESPONDING = ('CLIENT_NOT_RESPONDING', " %s  - Usuário {0}  não responde (morreu) \n")
-    CLIENT_INACTIVE = ('CLIENT_INACTIVE', " %s  - Usuário {0} tornou-se INATIVO \n")
-    CLIENT_ACTIVE = ('CLIENT_ACTIVE', " %s  - Usuário {0} tornou-se ATIVO \n")
-    GAME_STARTED = ('CLIENT_ACTIVE', " %s  - Usuários {0} começaram um jogo \n")
-    CLIENT_DISCONNECTED = ('CLIENT_DISCONNECTED', " %s  - Usuário {0} desconectou-se da rede \n")
+    CLIENT_REGISTERED = ('CLIENT_REGISTERED', " {0}  - Usuário {1} realizou cadastro \n")
+    CLIENT_CONNECTED = ('CLIENT_CONNECTED', " {0}  - Usuário {1} conectou-se \n")
+    CLIENT_NOT_RESPONDING = ('CLIENT_NOT_RESPONDING', " %s  - Usuário {1}  não responde (morreu) \n")
+    CLIENT_INACTIVE = ('CLIENT_INACTIVE', " {0}  - Usuário {1} tornou-se INATIVO \n")
+    CLIENT_ACTIVE = ('CLIENT_ACTIVE', " {0}  - Usuário {1} tornou-se ATIVO \n")
+    GAME_STARTED = ('CLIENT_ACTIVE', " {0}  - Usuários {1} começaram um jogo \n")
+    CLIENT_DISCONNECTED = ('CLIENT_DISCONNECTED', " {1}  - Usuário {0} desconectou-se da rede \n")
 
 
 def log(log_type: Logs, param):

@@ -4,6 +4,8 @@ import pickle
 from ClientStatus import ClientStatus
 from database import DataBase
 from Message import Message
+from logger import log, Logs
+
 
 class ServerReceiver:
     def __init__(self, name, connection, address, buffer_size):
@@ -38,6 +40,7 @@ class ServerReceiver:
             response.update({"nickname": nickname})
             response.update({"logged": True})
             print("[%s] User %s login was made successfully, updating status and address" % (self.name, nickname))
+            log(Logs.CLIENT_ACTIVE, nickname)
             updated = self.db_con.update_connection(nickname, ClientStatus.IDLE.value, ip, port)
             self.__handle_authentication(nickname)
 
@@ -59,6 +62,7 @@ class ServerReceiver:
         response = {"type": Message.type_login.value}
         if success:
             print("[%s] User %s registration was made successfully" % (self.name, nickname))
+            log(Logs.CLIENT_REGISTERED, nickname)
             response.update({"full_name": full_name})
             response.update({"nickname": nickname})
             response.update({"logged": True})
@@ -71,6 +75,7 @@ class ServerReceiver:
 
     def __handle_authentication(self, nick):
         self.nick = nick
+        log(Logs.CLIENT_INACTIVE, nick)
     
     def handle_menu_login(self):
         print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
@@ -128,6 +133,15 @@ class ServerReceiver:
 
     def handle_game_status(self, request):
         # Update the status of the user request.get("list")
+        players = request.get("list")
+        host = players[0]
+
+        self.db_con.create_game(host, players)
+
+        for u in players:
+            log(Logs.CLIENT_ACTIVE, u)
+
+        log(Logs.GAME_STARTED, players)
 
         print("[Handling with the status of the players]")
 
@@ -167,6 +181,7 @@ class ServerReceiver:
     def exit_connection(self):
         self.connection.close()
         self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")
+        log(Logs.CLIENT_DISCONNECTED, self.nick)
         print("[%s] Connection to %s is closed."%(self.name, self.address))
 
     def handle_connection(self):
