@@ -18,7 +18,7 @@ class Menu:
         return self.user
     
     def exit_server(self):
-        self.sender.request(Message.type_exit_server)
+        self.sender.request(Message.type_exit_server.value)
         self.user.set_logged(False)
 
     def invalid_request(self):
@@ -44,7 +44,7 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"      : Message.type_login,
+            "type"      : Message.type_login.value,
             "nickname"  : nickname,
             "password"  : password
         }
@@ -57,7 +57,7 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"       : Message.type_create_account,
+            "type"       : Message.type_create_account.value,
             "full_name"  : full_name,
             "nickname"   : nickname,
             "password"   : password
@@ -72,7 +72,7 @@ class Menu:
 
             if response.get("logged"):
                 self.user.set_info(response.get("full_name"), response.get("nickname"), True)
-                self.sender.request(Message.type_lobby)
+                self.sender.request(Message.type_lobby.value)
                 return False
 
             run_request = self.invalid_request()
@@ -103,7 +103,7 @@ class Menu:
         response = self.sender.request_receive(request_type)
         list_received = response.get("list")
 
-        if request_type == Message.type_list_user_on_line:
+        if request_type == Message.type_list_user_on_line.value:
             template = "|{:^15}|{:^10}|{:^15}|{:^5}|"
             print(self.menu_string)
             print(template.format("Nickname", "Status", "IP", "Port"))
@@ -116,7 +116,7 @@ class Menu:
             print(template.format(*line))
 
     def option_request_connection(self):
-        response = self.sender.request_receive(Message.type_list_user_idle)
+        response = self.sender.request_receive(Message.type_list_user_ready_to_play.value)
         list_received = response.get("list")
 
         if len(list_received) == 0:
@@ -141,7 +141,7 @@ class Menu:
                 selected_socket.connect((selected_user[1], 1501))
                 sender = ClientSender(selected_socket, self.buffer_size)
 
-                print(sender.request_receive(Message.type_game))
+                print(sender.request_receive(Message.type_game.value))
 
                 sender_list.append(sender)
             except ConnectionRefusedError as e:
@@ -149,15 +149,26 @@ class Menu:
 
         print("[%s] End of function."%(self.name))
 
+    def __communicate_waiting_connection(self, address):
+        print("[%s] Telling server user is ready to be receive connections in address %s." % (self.name, address))
+        request = {
+            "type": Message.type_setup_client_ready.value,
+            "ip": address[0],
+            "port": address[1]
+        }
+
+        self.sender.request_receive_message(request)
+
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
+        self.__communicate_waiting_connection(address)
         receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size)
 
         receiver.handle_connection()
 
         request = {
-            "type": Message.type_game,
+            "type": Message.type_game.value,
             "request": False
         }
 
@@ -173,9 +184,9 @@ class Menu:
                 option = int(input("[%s] Select an option:\n0 - LIST-USER-ON-LINE\n1 - LIST-USER-PLAYING\n2 - Request connection\n3 - Wait for request\n4 - Exit\nAnswer: "%(self.name)))
 
                 if option == 0: # LIST-USER-ON-LINE
-                    self.option_list(Message.type_list_user_on_line)
+                    self.option_list(Message.type_list_user_on_line.value)
                 elif option == 1: # LIST-USER-PLAYING
-                    self.option_list(Message.type_list_user_playing)
+                    self.option_list(Message.type_list_user_playing.value)
                 elif option == 2: # Request an connection with other players
                     self.option_request_connection()
                 elif option == 3: # Wait for an connection request
