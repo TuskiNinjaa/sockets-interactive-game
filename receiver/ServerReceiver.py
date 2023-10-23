@@ -111,11 +111,10 @@ class ServerReceiver:
         return response
 
     def list_user_ready_to_play(self):
-        users = self.db_con.get_by_status(ClientStatus.IDLE.value)
-        users_playing = self.db_con.get_by_status(ClientStatus.PLAYING.value)
+        users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated=False)
 
         users_formatted = []
-        for u in users + users_playing:
+        for u in users:
             if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
                 users_formatted.append([u[1], u[4], u[5]])
             
