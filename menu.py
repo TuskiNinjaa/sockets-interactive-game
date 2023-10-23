@@ -4,6 +4,7 @@ from sender import ClientSender
 from receiver.ClientReceiver import ClientReceiver
 from user import User
 from Message import Message
+from Game import Game
 
 class Menu:
     def __init__(self, name, server_socket, client_socket, buffer_size):
@@ -97,7 +98,7 @@ class Menu:
                 elif option == 2:
                     run_menu = False
                 else: # Invalid option
-                        print("[%s] Select an valid option."%self.name)
+                    print("[%s] Select an valid option."%self.name)
 
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
@@ -147,8 +148,6 @@ class Menu:
                 selected_socket.connect((selected_user[2], int(selected_user[3])))
                 sender = ClientSender(selected_socket, self.buffer_size)
 
-                print(sender.request_receive(Message.type_game.value))
-
                 sender_list.append(sender)
                 nickname_list.append(selected_user[0])
             except ConnectionRefusedError as e:
@@ -159,17 +158,13 @@ class Menu:
             "list": nickname_list
         }
         response = self.sender.request_receive_message(request)
-
-        print("[%s] End of function. Response: %s"%(self.name, response))
+        return sender_list, nickname_list
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
-        receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size)
+        receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size, self.user)
         receiver.handle_connection()
-        # thread = threading.Thread(target=self.just_wait, args=())
-        # thread.daemon = True
-        # thread.start()
 
     def lobby(self):
         run_menu = True
@@ -183,7 +178,9 @@ class Menu:
                 elif option == 1: # LIST-USER-PLAYING
                     self.option_list(Message.type_list_user_playing.value)
                 elif option == 2: # Request an connection with other players
-                    self.option_request_connection()
+                    sender_list, nickname_list = self.option_request_connection()
+                    game = Game(self.user)
+                    game.handle_host(sender_list, nickname_list)
                 elif option == 3: # Wait for an connection request
                     self.option_wait_connection()
                 elif option == 4:

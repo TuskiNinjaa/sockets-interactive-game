@@ -6,7 +6,6 @@ from database import DataBase
 from Message import Message
 from logger import log, Logs
 
-
 class ServerReceiver:
     def __init__(self, name, connection, address, buffer_size):
         self.name = name
@@ -78,9 +77,9 @@ class ServerReceiver:
         log(Logs.CLIENT_INACTIVE, nick)
 
     def handle_menu_login(self):
-        print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
+        #print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
         request = pickle.loads(self.connection.recv(self.buffer_size))
-        self.print_message("Lobby", "Request", request) # REMOVE debug
+        #self.print_message("Lobby", "Request", request) # REMOVE debug
 
         while request.get("type") != Message.type_lobby.value and request.get("type") != Message.type_exit_server.value:
             login_type = request.get("type")
@@ -92,11 +91,11 @@ class ServerReceiver:
             else:
                 response = "[%s] Unknown type of request." % self.name
 
-            self.print_message("Lobby", "Response", response) # REMOVE debug
+            #self.print_message("Lobby", "Response", response) # REMOVE debug
 
             self.connection.send(pickle.dumps(response))
             request = pickle.loads(self.connection.recv(self.buffer_size))
-            self.print_message("Lobby", "Request", request) # REMOVE debug
+            #self.print_message("Lobby", "Request", request) # REMOVE debug
         
         return request
     
@@ -154,10 +153,10 @@ class ServerReceiver:
         return response
 
     def handle_menu_lobby(self):
-        print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
+        #print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
 
         request = pickle.loads(self.connection.recv(self.buffer_size))
-        self.print_message("Lobby", "Request", request)
+        #self.print_message("Lobby", "Request", request)
 
         while request.get("type") != Message.type_exit_server.value:
             request_type =  request.get("type")
@@ -171,11 +170,11 @@ class ServerReceiver:
             else:
                 response = "[%s] Unknown type of request." % self.name
 
-            self.print_message("Lobby", "Response", response) # REMOVE debug
+            #self.print_message("Lobby", "Response", response) # REMOVE debug
 
             self.connection.send(pickle.dumps(response))
             request = pickle.loads(self.connection.recv(self.buffer_size))
-            self.print_message("Lobby", "Request", request) # REMOVE debug
+            #self.print_message("Lobby", "Request", request) # REMOVE debug
         
         return request
     
