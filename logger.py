@@ -13,7 +13,7 @@ class Logs(Enum):
 
 
 def log(log_type: Logs, param):
-    log_text = log_type.value[1].format(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), param)
+    log_text = log_type.value[1].format(datetime.now().strftime("%d/%m/%Y, %H:%M:%S"), param)
     print(log_type.value[0], log_text)
     __dump_log(log_text)
 
