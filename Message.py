@@ -10,4 +10,6 @@ class Message(Enum):
     type_list_user_ready_to_play = "LIST-USER-READY-TO-PLAY"
     type_setup_client_ready = "SETUP-USER-READY"
     type_lobby = "LOBBY"
-    type_game = "GAME"
+    type_init_game = "INIT_GAME"
+    type_update_game = "UPDATE_GAME"
+    type_finish_game = "FINISH_GAME"

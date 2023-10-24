@@ -2,6 +2,7 @@ import socket
 import pickle
 
 from ClientStatus import ClientStatus
+from GameStatus import GameStatus
 from database import DataBase
 from Message import Message
 from logger import log, Logs
@@ -146,11 +147,35 @@ class ServerReceiver:
         print("[Handling with the status of the players]")
 
         response = {
-            "type": Message.type_game.value,
+            "type": Message.type_init_game.value,
             "status": "Porfavor acaba!"
         }
         
         return response
+
+    def handle_update_game(self, request):
+        looser = request.get("looser")
+
+        self.db_con.update_status(looser, ClientStatus.IDLE.value)
+        log(Logs.CLIENT_GAME_LOST, looser)
+        log(Logs.CLIENT_INACTIVE, looser)
+
+        return {
+            "type":  Message.type_update_game.value,
+        }
+
+    def handle_finish_game(self, request):
+        winner = request.get("winner")
+        host = request.get("host")
+
+        self.db_con.update_status(winner, ClientStatus.IDLE.value)
+        log(Logs.CLIENT_GAME_WON, winner)
+        log(Logs.CLIENT_INACTIVE, winner)
+
+        self.db_con.update_game(host, GameStatus.FINISHED.value, winner)
+        return {
+            "type": Message.type_finish_game.value,
+        }
 
     def handle_menu_lobby(self):
         #print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
@@ -165,8 +190,12 @@ class ServerReceiver:
                 response = self.list_user_on_line()
             elif request_type == Message.type_list_user_playing.value:
                 response = self.list_user_playing()
-            elif request_type == Message.type_game.value:
+            elif request_type == Message.type_init_game.value:
                 response = self.handle_game_status(request)
+            elif request_type == Message.type_update_game.value:
+                response = self.handle_update_game(request)
+            elif request_type == Message.type_finish_game.value:
+                response = self.handle_finish_game(request)
             else:
                 response = "[%s] Unknown type of request." % self.name
 

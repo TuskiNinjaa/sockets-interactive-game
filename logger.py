@@ -5,7 +5,8 @@ from datetime import datetime
 class Logs(Enum):
     CLIENT_REGISTERED = ('CLIENT_REGISTERED', " {0}  - Usuário {1} realizou cadastro \n")
     CLIENT_CONNECTED = ('CLIENT_CONNECTED', " {0}  - Usuário {1} conectou-se \n")
-    CLIENT_NOT_RESPONDING = ('CLIENT_NOT_RESPONDING', " %s  - Usuário {1}  não responde (morreu) \n")
+    CLIENT_GAME_LOST = ('CLIENT_GAME_LOST', " %s  - Usuário {1} perdeu! \n")
+    CLIENT_GAME_WON = ('CLIENT_GAME_WON', " %s  - Usuário {1} ganhou a partida! \n")
     CLIENT_INACTIVE = ('CLIENT_INACTIVE', " {0}  - Usuário {1} tornou-se  (online, sem jogar) \n")
     CLIENT_ACTIVE = ('CLIENT_ACTIVE', " {0}  - Usuário {1} tornou-se ATIVO (online e jogando) \n")
     GAME_STARTED = ('GAME_STARTED', " {0}  - Usuários {1} começaram um jogo \n")

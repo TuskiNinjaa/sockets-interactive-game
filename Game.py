@@ -20,7 +20,7 @@ class Game:
 
         while request.get("type") != Message.type_lobby.value:
             response = {
-                "type": Message.type_game.value,
+                "type": Message.type_init_game.value,
                 "fingers": self.read_input()
             }
             connection.send(pickle.dumps(response))
@@ -28,7 +28,7 @@ class Game:
             request = pickle.loads(connection.recv(buffer_size))
             print("[%s] Request: %s."%(self.name, request))
 
-            response = {"type": Message.type_game.value}
+            response = {"type": Message.type_init_game.value}
             connection.send(pickle.dumps(response))
 
             request = pickle.loads(connection.recv(buffer_size))
@@ -41,7 +41,7 @@ class Game:
             fingers = [] if nickname_list[0]!=self.user.nickname else [self.read_input()]
 
             for sender in sender_list:
-                response = sender.request_receive(Message.type_game.value)
+                response = sender.request_receive(Message.type_update_game.value)
                 fingers.append(response.get("fingers"))
 
             print(fingers)
@@ -49,7 +49,7 @@ class Game:
             print("[%s] Sum: %s. Looser: %s"%(self.name, sum, nickname_list[looser_index]))
 
             request = {
-                "type": Message.type_game,
+                "type": Message.type_update_game.value,
                 "sum": sum,
                 "players": nickname_list,
                 "looser": nickname_list[looser_index]

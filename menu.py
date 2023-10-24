@@ -154,7 +154,7 @@ class Menu:
                 print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
 
         request = {
-            "type": Message.type_game.value,
+            "type": Message.type_init_game.value,
             "list": nickname_list
         }
         response = self.sender.request_receive_message(request)
