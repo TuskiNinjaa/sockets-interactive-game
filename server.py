@@ -30,6 +30,7 @@ class Server:
     def listen_to_client(self):
         try:
             self.socket.listen(1)
+            receiver = None
             while True:
                 connection, address = self.socket.accept()
                 receiver = ServerReceiver("%s"%(self.name), connection, address, self.buffer_size)
@@ -41,7 +42,8 @@ class Server:
                 print("[%s] Active connections: %d" %(self.name, threading.active_count() - 1))
                 
         except (KeyboardInterrupt) as e:
-            receiver.exit_connection()
+            if receiver != None:
+                receiver.exit_connection()
             self.shutdown_server()
 
 SERVER_NAME = "SERVER"

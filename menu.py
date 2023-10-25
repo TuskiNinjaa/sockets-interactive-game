@@ -21,6 +21,7 @@ class Menu:
     
     def exit_server(self):
         self.sender.request(Message.type_exit_server.value)
+        self.sender.close()
         self.user.set_logged(False)
 
     def invalid_request(self):
@@ -141,9 +142,8 @@ class Menu:
         sender_list = []
         nickname_list = [self.user.nickname]
         for i in user_index:
-            selected_user = list_received[int(i)]
-
             try:
+                selected_user = list_received[int(i)]
                 selected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 selected_socket.connect((selected_user[2], int(selected_user[3])))
                 sender = ClientSender(selected_socket, self.buffer_size)
@@ -152,19 +152,26 @@ class Menu:
                 nickname_list.append(selected_user[0])
             except ConnectionRefusedError as e:
                 print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
+            except IndexError as e:
+                print("[%s] Invalid index option: %s."%(self.name, i))
 
         request = {
             "type": Message.type_init_game.value,
             "list": nickname_list
         }
         response = self.sender.request_receive_message(request)
-        return sender_list, nickname_list
+
+        if len(sender_list)>0: # Starting the game
+            game = Game(self.user)
+            request = game.handle_host(sender_list, nickname_list)
+            #response = self.sender.request_receive_message(request)
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
-        receiver = ClientReceiver(self.user.nickname, connection, address, self.buffer_size, self.user)
-        receiver.handle_connection()
+        receiver = ClientReceiver(self.name, connection, address, self.buffer_size, self.user)
+        request = receiver.handle_connection()
+        #response = self.sender.request_receive_message(request)
 
     def lobby(self):
         run_menu = True
@@ -178,9 +185,7 @@ class Menu:
                 elif option == 1: # LIST-USER-PLAYING
                     self.option_list(Message.type_list_user_playing.value)
                 elif option == 2: # Request an connection with other players
-                    sender_list, nickname_list = self.option_request_connection()
-                    game = Game(self.user)
-                    game.handle_host(sender_list, nickname_list)
+                    self.option_request_connection()
                 elif option == 3: # Wait for an connection request
                     self.option_wait_connection()
                 elif option == 4:
@@ -190,7 +195,5 @@ class Menu:
 
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
-            except IndexError as e:
-                print("[%s] Invalid index option."%self.name)
             
             print(self.menu_string)

@@ -121,7 +121,7 @@ class ServerReceiver:
 
         users_formatted = []
         for u in users:
-            if not (self.address[0]==u[4] and self.address[1]==int(u[5])):
+            if self.nick != u[1]:
                 users_formatted.append([u[1], u[4], u[5]])
 
         response = {
@@ -144,8 +144,6 @@ class ServerReceiver:
 
         log(Logs.GAME_STARTED, players)
 
-        print("[Handling with the status of the players]")
-
         response = {
             "type": Message.type_init_game.value,
             "status": "Porfavor acaba!"
@@ -154,25 +152,29 @@ class ServerReceiver:
         return response
 
     def handle_update_game(self, request):
-        looser = request.get("looser")
+        # looser = request.get("looser")
 
-        self.db_con.update_status(looser, ClientStatus.IDLE.value)
-        log(Logs.CLIENT_GAME_LOST, looser)
-        log(Logs.CLIENT_INACTIVE, looser)
+        # self.db_con.update_status(looser, ClientStatus.IDLE.value)
+        # log(Logs.CLIENT_GAME_LOST, looser)
+        # log(Logs.CLIENT_INACTIVE, looser)
+
+        print("HANDLING UPDATE %s"%(request))
 
         return {
             "type":  Message.type_update_game.value,
         }
 
     def handle_finish_game(self, request):
-        winner = request.get("winner")
-        host = request.get("host")
+        # winner = request.get("winner")
+        # host = request.get("host")
 
-        self.db_con.update_status(winner, ClientStatus.IDLE.value)
-        log(Logs.CLIENT_GAME_WON, winner)
-        log(Logs.CLIENT_INACTIVE, winner)
+        # self.db_con.update_status(winner, ClientStatus.IDLE.value)
+        # log(Logs.CLIENT_GAME_WON, winner)
+        # log(Logs.CLIENT_INACTIVE, winner)
 
-        self.db_con.update_game(host, GameStatus.FINISHED.value, winner)
+        # self.db_con.update_game(host, GameStatus.FINISHED.value, winner)
+        print("HANDLING FINNISH %s"%(request))
+
         return {
             "type": Message.type_finish_game.value,
         }
@@ -206,7 +208,7 @@ class ServerReceiver:
             #self.print_message("Lobby", "Request", request) # REMOVE debug
         
         return request
-    
+
     def exit_connection(self):
         self.connection.close()
         self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")

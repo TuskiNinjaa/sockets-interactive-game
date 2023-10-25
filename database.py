@@ -2,7 +2,6 @@ import sqlite3
 
 from GameStatus import GameStatus
 
-
 class DataBase:
     def __init__(self, db_path = None):
         self.db_path = db_path or "storage.db"
@@ -20,7 +19,6 @@ class DataBase:
             self.__create_table_users(cur)
         except sqlite3.Error as error:
             print("[DATABASE] ERROR: Error reading data from table\n", error)
-
 
         try:
             cur.execute(

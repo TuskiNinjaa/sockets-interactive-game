@@ -16,9 +16,10 @@ class ClientReceiver:
         try:
             # Implementation of the player
             game = Game(self.user)
-            game.handle_player(self.connection, self.buffer_size)
+            message = game.handle_player(self.connection, self.buffer_size)
 
             self.connection.close()
+            return message
 
         except (EOFError, ConnectionResetError) as e:
             print("[%s] ERROR %s lost connection."%(self.name, self.address))

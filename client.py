@@ -62,6 +62,7 @@ class Client:
         except (EOFError, BrokenPipeError) as e:
             print("[%s] ERROR: Connection to the server was lost. Try again later."%self.name)
             self.server_socket.close()
+            print("\n[%s] Disconnecting to server."%self.name)
 
         except KeyboardInterrupt as e:
             self.disconnect_to_server()
