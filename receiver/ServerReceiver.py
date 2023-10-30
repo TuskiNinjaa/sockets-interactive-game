@@ -136,7 +136,7 @@ class ServerReceiver:
         players = request.get("list")
         host = players[0]
 
-        self.db_con.create_game(host, players)
+        self.db_con.create_game(host, "%s"%players)
 
         for u in players:
             log(Logs.CLIENT_ACTIVE, u)
@@ -144,40 +144,35 @@ class ServerReceiver:
 
         log(Logs.GAME_STARTED, players)
 
-        response = {
-            "type": Message.type_init_game.value,
-            "status": "Porfavor acaba!"
-        }
+        response = {"type": Message.type_init_game.value}
         
         return response
 
     def handle_update_game(self, request):
-        # looser = request.get("looser")
+        self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
+        
+        if request.get("is_loser"):
+            log(Logs.CLIENT_GAME_LOST, self.nick)
+        else:
+            log(Logs.CLIENT_GAME_WON, self.nick)
 
-        # self.db_con.update_status(looser, ClientStatus.IDLE.value)
-        # log(Logs.CLIENT_GAME_LOST, looser)
-        # log(Logs.CLIENT_INACTIVE, looser)
+        log(Logs.CLIENT_INACTIVE, self.nick)
 
-        print("HANDLING UPDATE %s"%(request))
-
-        return {
-            "type":  Message.type_update_game.value,
-        }
+        return {"type":  Message.type_update_game.value}
 
     def handle_finish_game(self, request):
-        # winner = request.get("winner")
-        # host = request.get("host")
+        self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
+        
+        if request.get("is_loser"):
+            log(Logs.CLIENT_GAME_LOST, self.nick)
+        else:
+            log(Logs.CLIENT_GAME_WON, self.nick)
 
-        # self.db_con.update_status(winner, ClientStatus.IDLE.value)
-        # log(Logs.CLIENT_GAME_WON, winner)
-        # log(Logs.CLIENT_INACTIVE, winner)
+        log(Logs.CLIENT_INACTIVE, self.nick)
 
-        # self.db_con.update_game(host, GameStatus.FINISHED.value, winner)
-        print("HANDLING FINNISH %s"%(request))
+        self.db_con.update_game(self.nick, GameStatus.FINISHED.value, request.get("winner"))
 
-        return {
-            "type": Message.type_finish_game.value,
-        }
+        return {"type": Message.type_finish_game.value}
 
     def handle_menu_lobby(self):
         #print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))

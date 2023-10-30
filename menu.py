@@ -103,6 +103,8 @@ class Menu:
 
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)
+            except KeyboardInterrupt as e:
+                print("[%s] Operation cancealed."%self.name)
 
             print(self.menu_string)
 
@@ -147,31 +149,59 @@ class Menu:
                 selected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 selected_socket.connect((selected_user[2], int(selected_user[3])))
                 sender = ClientSender(selected_socket, self.buffer_size)
+                
+                # Request connection
+                request = {
+                    "type": Message.type_init_game.value,
+                    "host_nickname": self.user.nickname
+                }
+                response = sender.request_receive_message(request)
 
-                sender_list.append(sender)
-                nickname_list.append(selected_user[0])
-            except ConnectionRefusedError as e:
+                if response.get("type") == Message.type_init_game:
+                    sender_list.append(sender)
+                    nickname_list.append(selected_user[0])
+                    print("[%s] Connected with %s."%(self.name, selected_user[0]))
+                else:
+                    print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
+            except (ConnectionRefusedError, TimeoutError, ConnectionResetError) as e:
                 print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
-            except IndexError as e:
-                print("[%s] Invalid index option: %s."%(self.name, i))
+            except (IndexError, ValueError) as e:
+                print("[%s] Invalid option: %s."%(self.name, i))
 
-        request = {
-            "type": Message.type_init_game.value,
-            "list": nickname_list
-        }
-        response = self.sender.request_receive_message(request)
 
         if len(sender_list)>0: # Starting the game
-            game = Game(self.user)
-            request = game.handle_host(sender_list, nickname_list)
-            #response = self.sender.request_receive_message(request)
+            request = {
+                "type": Message.type_init_game.value,
+                "list": nickname_list
+            }
+            response = self.sender.request_receive_message(request)
+
+            try:
+                game = Game(self.user)
+                request = game.handle_host(sender_list, nickname_list)
+                response = self.sender.request_receive_message(request)
+            except EOFError as e:
+                print("[%s] Error: Lost connection with one player."%self.name)
+                request = {
+                    "type": Message.type_finish_game.value,
+                    "is_loser": True
+                }
+                response = self.sender.request_receive_message(request)
+            except KeyboardInterrupt as e:
+                print("[%s] Game closed."%self.name)
+                request = {
+                    "type": Message.type_finish_game.value,
+                    "is_loser": True
+                }
+                response = self.sender.request_receive_message(request)
+
 
     def option_wait_connection(self): # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
-        receiver = ClientReceiver(self.name, connection, address, self.buffer_size, self.user)
+        
+        receiver = ClientReceiver(self.name, connection, address, self.sender, self.buffer_size, self.user)
         request = receiver.handle_connection()
-        #response = self.sender.request_receive_message(request)
 
     def lobby(self):
         run_menu = True
@@ -191,7 +221,7 @@ class Menu:
                 elif option == 4:
                     run_menu = False
                 else: # Invalid option
-                        print("[%s] Select an valid option."%self.name)
+                    print("[%s] Select an valid option."%self.name)
 
             except ValueError as e: # Invalid option
                 print("[%s] Select an valid option."%self.name)

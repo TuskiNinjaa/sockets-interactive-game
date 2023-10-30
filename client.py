@@ -38,11 +38,11 @@ class Client:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         client_socket.bind((self.ip, self.port))
+        client_socket.listen(1)
         print("[%s] Initializing host at %s."%(self.name, client_socket.getsockname()))
         return client_socket
     
     def shutdown_host(self):
-        self.client_socket.shutdown(socket.SHUT_RDWR)
         self.client_socket.close()
         print("\n[%s] Shutting down host."%self.name)
 
@@ -63,9 +63,11 @@ class Client:
             print("[%s] ERROR: Connection to the server was lost. Try again later."%self.name)
             self.server_socket.close()
             print("\n[%s] Disconnecting to server."%self.name)
+            self.shutdown_host()
 
         except KeyboardInterrupt as e:
             self.disconnect_to_server()
+            self.shutdown_host()
 
 SERVER_IP = "localhost"
 SERVER_PORT = 2001

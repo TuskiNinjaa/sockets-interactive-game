@@ -5,38 +5,47 @@ import pickle
 
 class Game:
     def __init__(self, user):
-        self.name = "Fingers Game"
+        self.name = "FINGERS GAME"
         self.user = user
         self.print_description()
 
     def print_description(self):
         print("[%s] Lets start the game!"%self.name)
-        print("TUTORIAL")
+        print("TUTORIAL:\nShow a number from 0 to 10, if the counter stops on you, you are out of the game.")
 
     def handle_player(self, connection, buffer_size):
+        print("[%s] Waiting for your turn."%self.name)
         request = pickle.loads(connection.recv(buffer_size))
-        print("[%s] Request: %s."%(self.name, request))
 
         while request.get("type") != Message.type_finish_game.value:
             response = {
-                "type": Message.type_init_game.value,
+                "type": Message.type_update_game.value,
                 "fingers": self.read_input()
             }
             connection.send(pickle.dumps(response))
 
-            request = pickle.loads(connection.recv(buffer_size))
-            print("[%s] Request: %s."%(self.name, request))
+            result = pickle.loads(connection.recv(buffer_size))
 
-            self.print_round_result(request.get("sum"), request.get("looser"), request.get("players"))
+            self.print_round_result(result.get("sum"), result.get("loser"), result.get("players"))
 
-            response = {"type": Message.type_init_game.value}
+            response = {"type": Message.type_update_game.value}
             connection.send(pickle.dumps(response))
 
             request = pickle.loads(connection.recv(buffer_size))
-            print("[%s] Request: %s."%(self.name, request))
-            print("%s"%request.get("type"))
+            if request.get("type") != Message.type_finish_game.value:
+                print("[%s] Waiting for your turn."%self.name)                
+        
+        request_to_server = {"type": Message.type_update_game.value}
+        if result.get("loser") == self.user.nickname:
+            request_to_server.update({"is_loser": True})
+        else:
+            request_to_server.update({"is_loser": False})
 
-    def handle_host(self, sender_list, nickname_list):        
+        print(request_to_server)
+        return request_to_server
+
+
+    def handle_host(self, sender_list, nickname_list):
         while len(nickname_list)>1:
             fingers = [] if nickname_list[0]!=self.user.nickname else [self.read_input()]
 
@@ -44,40 +53,48 @@ class Game:
                 response = sender.request_receive(Message.type_update_game.value)
                 fingers.append(response.get("fingers"))
 
-            sum, looser_index = self.execute_round(fingers)
-            nickname_looser = nickname_list.pop(looser_index)
+            sum, loser_index = self.execute_round(fingers)
+            nickname_loser = nickname_list.pop(loser_index)
 
             request = {
                 "type": Message.type_update_game.value,
                 "sum": sum,
                 "players": nickname_list,
-                "looser": nickname_looser
+                "loser": nickname_loser
             }
 
             for sender in sender_list:
                 response = sender.request_receive_message(request)
 
-            if nickname_looser != self.user.nickname:
+            if nickname_loser != self.user.nickname:
                 if nickname_list[0]==self.user.nickname:
-                    sender = sender_list.pop(looser_index-1)
+                    sender = sender_list.pop(loser_index-1)
                 else:
-                    sender = sender_list.pop(looser_index)
+                    sender = sender_list.pop(loser_index)
                 sender.request(Message.type_finish_game.value)
                 sender.close()
+            else:
+                self.print_game_over_host()
 
-            self.print_round_result(sum, nickname_looser, nickname_list)
+            self.print_round_result(sum, nickname_loser, nickname_list)
         
-        if nickname_looser!=self.user.nickname: # Host won the game
+        request_to_server = {"type": Message.type_finish_game.value}
+        if nickname_list[0]==self.user.nickname: # Host won the game
             self.print_victory()
-        else:
+            request_to_server.update({"is_loser": False})
+            request_to_server.update({"winner": self.user.nickname})
+        else: # Host lost the game
             self.print_game_over_player()
-            sender_list[0].request(Message.type_finish_game.value)
-            sender_list[0].close()
+            (sender_list[0]).request(Message.type_finish_game.value)
+            (sender_list[0]).close()
+            request_to_server.update({"is_loser": True})
+            request_to_server.update({"winner": nickname_list[0]})
+        return request_to_server
 
-    def print_round_result(self, sum, looser, players):
+    def print_round_result(self, sum, loser, players):
         print("[%s] Round Result\nPlayers: "%(self.name), end="")
         print(*players)
-        print("Sum: %d\nLooser: %s"%(sum, looser))
+        print("Sum: %d\nLoser: %s"%(sum, loser))
 
     def print_game_over_player(self):
         print("[%s] Gave Over. Returning to the Lobby."%self.name)
@@ -92,7 +109,7 @@ class Game:
         run_read_input = True
         while run_read_input:
             try:
-                finger_num = int(input('Informe a quantia de dedos escolhida: '))
+                finger_num = int(input('Show your fingers [0, 10]: '))
             
                 if(finger_num > 10 or finger_num < 0): #Invalid option
                     print("[%s] Error: Type a number between 0 and 10"%self.name)
