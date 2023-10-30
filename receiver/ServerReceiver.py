@@ -1,11 +1,17 @@
-import socket
 import pickle
 
 from ClientStatus import ClientStatus
 from GameStatus import GameStatus
-from database import DataBase
 from Message import Message
+from database import DataBase
 from logger import log, Logs
+
+
+# Grupo:
+# RAQUEL FREIRE CERZOSIMO - 2020.1905.009-6
+# RAISSA RINALDI YOSHIOKA - 2020.1905.049-5
+# VITOR YUSKE WATANABE - 2020.1905.058-4
+
 
 class ServerReceiver:
     def __init__(self, name, connection, address, buffer_size):
@@ -15,9 +21,9 @@ class ServerReceiver:
         self.buffer_size = buffer_size
         self.db_con = DataBase()
         self.nick = "LOGGED_OUT"
-    
+
     def print_message(self, menu_name, message_name, message):
-        print("[%s] %s\n%s: %s\nAddress: %s" %(self.name, menu_name, message_name, message, self.address))
+        print("[%s] %s\n%s: %s\nAddress: %s" % (self.name, menu_name, message_name, message, self.address))
 
     def login_account_verification(self, request, address):
         # Implementation the process of verification of the login account and make return True or False if the user is online        
@@ -30,7 +36,8 @@ class ServerReceiver:
 
         response = {"type": Message.type_login.value}
         if not user:
-            response.update({"error": "User not found, check if name was spelled correctly or try creating a new account"})
+            response.update(
+                {"error": "User not found, check if name was spelled correctly or try creating a new account"})
             response.update({"logged": False})
         elif user[2] != password:
             response.update({"error": "Passwords do not match!"})
@@ -47,7 +54,7 @@ class ServerReceiver:
                 print("[%s] User %s data updated successfully" % (self.name, nickname))
 
         return response
-    
+
     def create_account_verification(self, request, address):
         # Implementation of the process of profile creation and login on new account if possible
         full_name = request.get("full_name")
@@ -78,9 +85,9 @@ class ServerReceiver:
         log(Logs.CLIENT_INACTIVE, nick)
 
     def handle_menu_login(self):
-        #print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
+        # print("[%s] %s is connected to the Login Menu."%(self.name, self.address))
         request = pickle.loads(self.connection.recv(self.buffer_size))
-        #self.print_message("Lobby", "Request", request) # REMOVE debug
+        # self.print_message("Lobby", "Request", request) # REMOVE debug
 
         while request.get("type") != Message.type_lobby.value and request.get("type") != Message.type_exit_server.value:
             login_type = request.get("type")
@@ -92,16 +99,16 @@ class ServerReceiver:
             else:
                 response = "[%s] Unknown type of request." % self.name
 
-            #self.print_message("Lobby", "Response", response) # REMOVE debug
+            # self.print_message("Lobby", "Response", response) # REMOVE debug
 
             self.connection.send(pickle.dumps(response))
             request = pickle.loads(self.connection.recv(self.buffer_size))
-            #self.print_message("Lobby", "Request", request) # REMOVE debug
-        
+            # self.print_message("Lobby", "Request", request) # REMOVE debug
+
         return request
-    
+
     def list_user_on_line(self):
-        users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated= True)
+        users = self.db_con.get_by_status(ClientStatus.OFFLINE.value, negated=True)
 
         users_formatted = []
         for u in users:
@@ -114,7 +121,7 @@ class ServerReceiver:
         }
 
         return response
-    
+
     def list_user_playing(self):
         # Return a relation list with host player and client player
         users = self.db_con.get_by_status(ClientStatus.PLAYING.value)
@@ -136,7 +143,7 @@ class ServerReceiver:
         players = request.get("list")
         host = players[0]
 
-        self.db_con.create_game(host, "%s"%players)
+        self.db_con.create_game(host, "%s" % players)
 
         for u in players:
             log(Logs.CLIENT_ACTIVE, u)
@@ -145,12 +152,12 @@ class ServerReceiver:
         log(Logs.GAME_STARTED, players)
 
         response = {"type": Message.type_init_game.value}
-        
+
         return response
 
     def handle_update_game(self, request):
         self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
-        
+
         if request.get("is_loser"):
             log(Logs.CLIENT_GAME_LOST, self.nick)
         else:
@@ -158,11 +165,11 @@ class ServerReceiver:
 
         log(Logs.CLIENT_INACTIVE, self.nick)
 
-        return {"type":  Message.type_update_game.value}
+        return {"type": Message.type_update_game.value}
 
     def handle_finish_game(self, request):
         self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
-        
+
         if request.get("is_loser"):
             log(Logs.CLIENT_GAME_LOST, self.nick)
         else:
@@ -175,13 +182,13 @@ class ServerReceiver:
         return {"type": Message.type_finish_game.value}
 
     def handle_menu_lobby(self):
-        #print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
+        # print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
 
         request = pickle.loads(self.connection.recv(self.buffer_size))
-        #self.print_message("Lobby", "Request", request)
+        # self.print_message("Lobby", "Request", request)
 
         while request.get("type") != Message.type_exit_server.value:
-            request_type =  request.get("type")
+            request_type = request.get("type")
 
             if request_type == Message.type_list_user_on_line.value:
                 response = self.list_user_on_line()
@@ -196,29 +203,29 @@ class ServerReceiver:
             else:
                 response = "[%s] Unknown type of request." % self.name
 
-            #self.print_message("Lobby", "Response", response) # REMOVE debug
+            # self.print_message("Lobby", "Response", response) # REMOVE debug
 
             self.connection.send(pickle.dumps(response))
             request = pickle.loads(self.connection.recv(self.buffer_size))
-            #self.print_message("Lobby", "Request", request) # REMOVE debug
-        
+            # self.print_message("Lobby", "Request", request) # REMOVE debug
+
         return request
 
     def exit_connection(self):
         self.connection.close()
         self.db_con.update_connection(self.nick, ClientStatus.OFFLINE.value, "", "")
         log(Logs.CLIENT_DISCONNECTED, self.nick)
-        print("[%s] Connection to %s is closed."%(self.name, self.address))
+        print("[%s] Connection to %s is closed." % (self.name, self.address))
 
     def handle_connection(self):
         try:
             request = self.handle_menu_login()
-            
-            if request.get("type") == Message.type_lobby.value: # Verify if the user is logged
+
+            if request.get("type") == Message.type_lobby.value:  # Verify if the user is logged
                 self.handle_menu_lobby()
-            
+
             self.exit_connection()
 
         except (EOFError, ConnectionResetError) as e:
-            print("[%s] ERROR %s lost connection."%(self.name, self.address))
+            print("[%s] ERROR %s lost connection." % (self.name, self.address))
             self.exit_connection()

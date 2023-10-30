@@ -2,8 +2,15 @@ import sqlite3
 
 from GameStatus import GameStatus
 
+
+# Grupo:
+# RAQUEL FREIRE CERZOSIMO - 2020.1905.009-6
+# RAISSA RINALDI YOSHIOKA - 2020.1905.049-5
+# VITOR YUSKE WATANABE - 2020.1905.058-4
+
+
 class DataBase:
-    def __init__(self, db_path = None):
+    def __init__(self, db_path=None):
         self.db_path = db_path or "storage.db"
 
         self.__check_connection()
@@ -32,7 +39,6 @@ class DataBase:
             if con:
                 con.commit()
                 con.close()
-
 
     def __create_table_users(self, cur):
         cur.execute('''
@@ -93,7 +99,7 @@ class DataBase:
 
             data_tuple = (username, nick, password, status, ip, port)
             cur.execute(insert, data_tuple)
-            print("[DATABASE] User %s data saved successfully"%nick)
+            print("[DATABASE] User %s data saved successfully" % nick)
             success = True
         except sqlite3.Error as error:
             print("[DATABASE] ERROR: Error saving data from table users\n", error)
@@ -113,7 +119,7 @@ class DataBase:
 
             data_tuple = (status, nick)
             cur.execute(insert, data_tuple)
-            print("[DATABASE] User %s data saved successfully"% nick)
+            print("[DATABASE] User %s data saved successfully" % nick)
             success = True
         except sqlite3.Error as error:
             print("[DATABASE] ERROR: Error saving data from table users\n", error)
@@ -134,7 +140,7 @@ class DataBase:
 
             data_tuple = (status, ip, port, nick)
             cur.execute(insert, data_tuple)
-            print("[DATABASE] User %s data updated successfully"%nick)
+            print("[DATABASE] User %s data updated successfully" % nick)
             success = True
         except sqlite3.Error as error:
             print("[DATABASE] ERROR: Error updating data from table users\n", error)
@@ -163,7 +169,7 @@ class DataBase:
                 con.close()
         return success
 
-    def get_by_status(self, status, negated = False):
+    def get_by_status(self, status, negated=False):
         users = []
         try:
             con = sqlite3.connect(self.db_path)
@@ -228,4 +234,3 @@ class DataBase:
                 con.close()
 
         return success
-

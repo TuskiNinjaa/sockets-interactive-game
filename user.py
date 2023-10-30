@@ -1,3 +1,9 @@
+# Grupo:
+# RAQUEL FREIRE CERZOSIMO - 2020.1905.009-6
+# RAISSA RINALDI YOSHIOKA - 2020.1905.049-5
+# VITOR YUSKE WATANABE - 2020.1905.058-4
+
+
 class User:
     def __init__(self):
         self.full_name = ""
@@ -19,4 +25,4 @@ class User:
         self.set_logged(logged)
 
     def print_info(self):
-        print("Full name: %s\nNickname: %s\nLogged: %s"%(self.full_name, self.nickname, self.logged))
+        print("Full name: %s\nNickname: %s\nLogged: %s" % (self.full_name, self.nickname, self.logged))

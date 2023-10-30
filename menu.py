@@ -1,10 +1,17 @@
 import socket
-import threading
-from sender import ClientSender
-from receiver.ClientReceiver import ClientReceiver
-from user import User
-from Message import Message
+
 from Game import Game
+from Message import Message
+from receiver.ClientReceiver import ClientReceiver
+from sender import ClientSender
+from user import User
+
+
+# Grupo:
+# RAQUEL FREIRE CERZOSIMO - 2020.1905.009-6
+# RAISSA RINALDI YOSHIOKA - 2020.1905.049-5
+# VITOR YUSKE WATANABE - 2020.1905.058-4
+
 
 class Menu:
     def __init__(self, name, server_socket, client_socket, buffer_size):
@@ -15,10 +22,10 @@ class Menu:
         self.user = User()
 
         self.menu_string = "-------------------------"
-        
+
     def get_user(self):
         return self.user
-    
+
     def exit_server(self):
         self.sender.request(Message.type_exit_server.value)
         self.sender.close()
@@ -28,18 +35,19 @@ class Menu:
         run_menu = True
         while run_menu:
             try:
-                option = int(input("[%s] Invalid request. Select an option:\n0 - Try again\n1 - Exit\nAnswer: " %(self.name)))
+                option = int(
+                    input("[%s] Invalid request. Select an option:\n0 - Try again\n1 - Exit\nAnswer: " % (self.name)))
 
-                if option == 0: # Try again
+                if option == 0:  # Try again
                     return True
-                elif option == 1: # Exit menu
+                elif option == 1:  # Exit menu
                     return False
                 else:
                     print("[%s] Select an valid option." % self.name)
-        
-            except ValueError as e: # Invalid option
-                print("[%s] Select an valid option."%self.name)
-            
+
+            except ValueError as e:  # Invalid option
+                print("[%s] Select an valid option." % self.name)
+
             print(self.menu_string)
 
     def option_login_account(self):
@@ -47,31 +55,31 @@ class Menu:
         password = input("Password: ")
 
         request = {
-            "type"      : Message.type_login.value,
-            "nickname"  : nickname,
-            "password"  : password,
-            "ip"        : self.client_socket.getsockname()[0],
-            "port"      : self.client_socket.getsockname()[1]
+            "type": Message.type_login.value,
+            "nickname": nickname,
+            "password": password,
+            "ip": self.client_socket.getsockname()[0],
+            "port": self.client_socket.getsockname()[1]
         }
 
         return self.sender.request_receive_message(request)
-    
+
     def option_create_account(self):
         full_name = input("Full name: ")
         nickname = input("Nickname: ")
         password = input("Password: ")
 
         request = {
-            "type"      : Message.type_create_account.value,
-            "full_name" : full_name,
-            "nickname"  : nickname,
-            "password"  : password,
-            "ip"        : self.client_socket.getsockname()[0],
-            "port"      : self.client_socket.getsockname()[1]
+            "type": Message.type_create_account.value,
+            "full_name": full_name,
+            "nickname": nickname,
+            "password": password,
+            "ip": self.client_socket.getsockname()[0],
+            "port": self.client_socket.getsockname()[1]
         }
 
         return self.sender.request_receive_message(request)
-    
+
     def option_account(self, request_function):
         run_request = True
         while run_request:
@@ -85,26 +93,27 @@ class Menu:
             run_request = self.invalid_request()
 
         return True
-    
+
     def login(self):
         run_menu = True
         while run_menu:
             try:
-                option = int(input("[%s] Select an option:\n0 - Login\n1 - Create account\n2 - Exit\nAnswer: "%(self.name)))
+                option = int(
+                    input("[%s] Select an option:\n0 - Login\n1 - Create account\n2 - Exit\nAnswer: " % (self.name)))
 
-                if option == 0: # Simple login
+                if option == 0:  # Simple login
                     run_menu = self.option_account(self.option_login_account)
-                elif option == 1: # Account creation and login
+                elif option == 1:  # Account creation and login
                     run_menu = self.option_account(self.option_create_account)
                 elif option == 2:
                     run_menu = False
-                else: # Invalid option
-                    print("[%s] Select an valid option."%self.name)
+                else:  # Invalid option
+                    print("[%s] Select an valid option." % self.name)
 
-            except ValueError as e: # Invalid option
-                print("[%s] Select an valid option."%self.name)
+            except ValueError as e:  # Invalid option
+                print("[%s] Select an valid option." % self.name)
             except KeyboardInterrupt as e:
-                print("[%s] Operation cancealed."%self.name)
+                print("[%s] Operation cancealed." % self.name)
 
             print(self.menu_string)
 
@@ -129,7 +138,7 @@ class Menu:
         list_received = response.get("list")
 
         if len(list_received) == 0:
-            print("[%s] There are no users waiting for connection"%self.name)
+            print("[%s] There are no users waiting for connection" % self.name)
             return
 
         print("[%s] Request connection, choose one or more users:" % self.name)
@@ -138,8 +147,8 @@ class Menu:
 
         for index, line in enumerate(list_received):
             print(template.format(index, *line))
-        
-        user_index = input("[%s] Selected users (separate elements by ',')\nAnswer: "%self.name).split(',')
+
+        user_index = input("[%s] Selected users (separate elements by ',')\nAnswer: " % self.name).split(',')
 
         sender_list = []
         nickname_list = [self.user.nickname]
@@ -149,7 +158,7 @@ class Menu:
                 selected_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 selected_socket.connect((selected_user[2], int(selected_user[3])))
                 sender = ClientSender(selected_socket, self.buffer_size)
-                
+
                 # Request connection
                 request = {
                     "type": Message.type_init_game.value,
@@ -160,16 +169,15 @@ class Menu:
                 if response.get("type") == Message.type_init_game:
                     sender_list.append(sender)
                     nickname_list.append(selected_user[0])
-                    print("[%s] Connected with %s."%(self.name, selected_user[0]))
+                    print("[%s] Connected with %s." % (self.name, selected_user[0]))
                 else:
-                    print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
+                    print("[%s] Unnable to connect with %s." % (self.name, selected_user[0]))
             except (ConnectionRefusedError, TimeoutError, ConnectionResetError) as e:
-                print("[%s] Unnable to connect with %s."%(self.name, selected_user[0]))
+                print("[%s] Unnable to connect with %s." % (self.name, selected_user[0]))
             except (IndexError, ValueError) as e:
-                print("[%s] Invalid option: %s."%(self.name, i))
+                print("[%s] Invalid option: %s." % (self.name, i))
 
-
-        if len(sender_list)>0: # Starting the game
+        if len(sender_list) > 0:  # Starting the game
             request = {
                 "type": Message.type_init_game.value,
                 "list": nickname_list
@@ -181,25 +189,24 @@ class Menu:
                 request = game.handle_host(sender_list, nickname_list)
                 response = self.sender.request_receive_message(request)
             except EOFError as e:
-                print("[%s] Error: Lost connection with one player."%self.name)
+                print("[%s] Error: Lost connection with one player." % self.name)
                 request = {
                     "type": Message.type_finish_game.value,
                     "is_loser": True
                 }
                 response = self.sender.request_receive_message(request)
             except KeyboardInterrupt as e:
-                print("[%s] Game closed."%self.name)
+                print("[%s] Game closed." % self.name)
                 request = {
                     "type": Message.type_finish_game.value,
                     "is_loser": True
                 }
                 response = self.sender.request_receive_message(request)
 
-
-    def option_wait_connection(self): # Implements the process of listening to a client request to start a game
+    def option_wait_connection(self):  # Implements the process of listening to a client request to start a game
         self.client_socket.listen(1)
         connection, address = self.client_socket.accept()
-        
+
         receiver = ClientReceiver(self.name, connection, address, self.sender, self.buffer_size, self.user)
         request = receiver.handle_connection()
 
@@ -208,22 +215,24 @@ class Menu:
 
         while run_menu:
             try:
-                option = int(input("[%s] Select an option:\n0 - LIST-USER-ON-LINE\n1 - LIST-USER-PLAYING\n2 - Request connection\n3 - Wait for request\n4 - Exit\nAnswer: "%(self.name)))
+                option = int(input(
+                    "[%s] Select an option:\n0 - LIST-USER-ON-LINE\n1 - LIST-USER-PLAYING\n2 - Request connection\n3 - Wait for request\n4 - Exit\nAnswer: " % (
+                        self.name)))
 
-                if option == 0: # LIST-USER-ON-LINE
+                if option == 0:  # LIST-USER-ON-LINE
                     self.option_list(Message.type_list_user_on_line.value)
-                elif option == 1: # LIST-USER-PLAYING
+                elif option == 1:  # LIST-USER-PLAYING
                     self.option_list(Message.type_list_user_playing.value)
-                elif option == 2: # Request an connection with other players
+                elif option == 2:  # Request an connection with other players
                     self.option_request_connection()
-                elif option == 3: # Wait for an connection request
+                elif option == 3:  # Wait for an connection request
                     self.option_wait_connection()
                 elif option == 4:
                     run_menu = False
-                else: # Invalid option
-                    print("[%s] Select an valid option."%self.name)
+                else:  # Invalid option
+                    print("[%s] Select an valid option." % self.name)
 
-            except ValueError as e: # Invalid option
-                print("[%s] Select an valid option."%self.name)
-            
+            except ValueError as e:  # Invalid option
+                print("[%s] Select an valid option." % self.name)
+
             print(self.menu_string)
