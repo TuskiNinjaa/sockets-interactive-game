@@ -78,6 +78,10 @@ class Client:
             self.shutdown_host()
 
 
+"""
+------------
+Default client configurations
+"""
 SERVER_IP = "localhost"
 SERVER_PORT = 2001
 BUFFER_SIZE = 1024
@@ -86,6 +90,10 @@ ENCODING = 'utf-8'
 CLIENT_NAME = "CLIENT"
 CLIENT_IP = "localhost"
 CLIENT_PORT = 0
+
+"""
+----------------------
+"""
 
 
 def main():

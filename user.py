@@ -5,6 +5,9 @@
 
 
 class User:
+    """
+        Helper class to hold user data
+        """
     def __init__(self):
         self.full_name = ""
         self.nickname = ""

@@ -12,6 +12,10 @@ from receiver.ServerReceiver import ServerReceiver
 
 
 class Server:
+    """
+    Class responsible for the server initialization
+    and opening connections with the clients
+    """
     def __init__(self, name, ip, port, buffer_size, encoding):
         self.name = name
         self.ip = ip
@@ -55,12 +59,18 @@ class Server:
             self.shutdown_server()
 
 
+"""
+------------
+Default server configurations
+"""
 SERVER_NAME = "SERVER"
 SERVER_IP = "localhost"
 SERVER_PORT = 2001
 BUFFER_SIZE = 1024
 ENCODING = 'utf-8'
-
+"""
+----------------------
+"""
 
 def main():
     server = Server(

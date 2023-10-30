@@ -10,6 +10,9 @@ from GameStatus import GameStatus
 
 
 class DataBase:
+    """
+        Class responsible for all database interactions
+        """
     def __init__(self, db_path=None):
         self.db_path = db_path or "storage.db"
 

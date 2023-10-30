@@ -8,6 +8,10 @@ import pickle
 
 
 class ClientSender:
+    """
+        Helper class responsible for grouping
+        client requests/responses in communication with the server
+        """
     def __init__(self, socket, buffer_size):
         self.socket = socket
         self.buffer_size = buffer_size

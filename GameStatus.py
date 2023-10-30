@@ -8,6 +8,9 @@ from enum import Enum
 
 
 class GameStatus(Enum):
+    """
+        Enum class reponsible for listing the possible game status
+        """
     RUNNING = 'RUNNING'
     CANCELED = 'CANCELED'
     FINISHED = 'FINISHED'

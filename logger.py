@@ -18,7 +18,15 @@ class Logs(Enum):
     GAME_STARTED = ('GAME_STARTED', " {0}  - Usuários {1} começaram um jogo \n")
     CLIENT_DISCONNECTED = ('CLIENT_DISCONNECTED', " {1}  - Usuário {0} desconectou-se da rede \n")
 
+""" 
+Method responsible for logging in the terminal and also
+dumping the content in a log file.
 
+Receives a log type from a enum, this way, the method only gets the appropriate log model
+and formats it with the received parameters.
+
+Also adds the timestamp for the logs
+"""
 def log(log_type: Logs, param):
     log_text = log_type.value[1].format(datetime.now().strftime("%d/%m/%Y, %H:%M:%S"), param)
     print(log_type.value[0], log_text)

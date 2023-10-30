@@ -8,6 +8,10 @@ from enum import Enum
 
 
 class Message(Enum):
+    """
+        Enum Class to list possible interactions
+        client/server and client/client
+        """
     type_exit_server = "EXIT-SERVER"
     type_login = "LOGIN"
     type_create_account = "CREATE-ACCOUNT"

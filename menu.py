@@ -3,7 +3,7 @@ import socket
 from Game import Game
 from Message import Message
 from receiver.ClientReceiver import ClientReceiver
-from sender import ClientSender
+from ClientSender import ClientSender
 from user import User
 
 
@@ -14,6 +14,12 @@ from user import User
 
 
 class Menu:
+    """
+        Client class made to abstract the interactions/responses
+        in the client terminal.
+        It handles the menu interaction, the option selection and
+        input validation before sending the request to the server (using ClientSender)
+        """
     def __init__(self, name, server_socket, client_socket, buffer_size):
         self.name = name
         self.sender = ClientSender(server_socket, buffer_size)

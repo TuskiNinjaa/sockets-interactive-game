@@ -11,6 +11,14 @@ from Message import Message
 
 
 class ClientReceiver:
+    """
+    Class to group logic relative to the client open sockets
+
+    This is used on P2P connection with the game host
+    opened on the game start.
+    Handle the game prompt, since the game request, game
+    actions till the end (handling victory or defeat)
+    """
     def __init__(self, name, connection, address, sender, buffer_size, user):
         self.name = name
         self.connection = connection
@@ -23,6 +31,11 @@ class ClientReceiver:
     def print_message(self, menu_name, message_name, message):
         print("[%s] %s\n%s: %s\nAddress: %s" %(self.name, menu_name, message_name, message, self.address))
 
+    """
+    This method handles the game prompt.
+    Querying the user if they want (or not) to accept the 
+    game invitation.
+    """
     def menu(self):
         request = pickle.loads(self.connection.recv(self.buffer_size))
         response = {}
@@ -52,6 +65,14 @@ class ClientReceiver:
         self.connection.send(pickle.dumps(response))
         return start_game
 
+
+    """
+    Inits the P2P connection with the game prompt
+    
+    Checks if the client accepts the game requests
+    if yes, starts the game and handles the recieved data from host
+    if not, only closes the connection
+    """
     def handle_connection(self):
         try:
             start_game = self.menu()

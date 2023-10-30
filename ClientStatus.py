@@ -8,6 +8,9 @@ from enum import Enum
 
 
 class ClientStatus(Enum):
+    """
+    Enum class reponsible for listing the possible client status
+    """
     OFFLINE = 'OFFLINE'
     IDLE = 'IDLE'
     PLAYING = 'PLAYING'
