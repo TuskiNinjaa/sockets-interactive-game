@@ -32,16 +32,16 @@ class ServerReceiver:
         print("[%s] %s\n%s: %s\nAddress: %s" % (self.name, menu_name, message_name, message, self.address))
 
     """
-    Method responsible for the client login
-    it recieves the request payload, expecting some of the
-    client info.
-    
-    It connects with the database querying the user, if its not found
-    returns error
-    if it`s found, but the provided password is incorrect, it also
-    returns error
-    then, if all is correct, login is made, client data is updated in database 
-    and success is returned
+        Method responsible for the client login
+        it recieves the request payload, expecting some of the
+        client info.
+        
+        It connects with the database querying the user, if its not found
+        returns error
+        if it`s found, but the provided password is incorrect, it also
+        returns error
+        then, if all is correct, login is made, client data is updated in database 
+        and success is returned
     """
     def login_account_verification(self, request):
         nickname = request.get("nickname")
@@ -163,7 +163,7 @@ class ServerReceiver:
 
     """
         Queries the database and returns the current playing users
-        """
+    """
     def list_user_playing(self):
         # Return a relation list with host player and client player
         users = self.db_con.get_by_status(ClientStatus.PLAYING.value)
@@ -184,7 +184,7 @@ class ServerReceiver:
         Handle a new game
         Request the creation of a new game in the database and
         updates all players status to playing
-        """
+    """
     def handle_game_status(self, request):
         # Update the status of the user request.get("list")
         players = request.get("list")
@@ -203,9 +203,9 @@ class ServerReceiver:
         return response
 
     """
-            Handle the game update
-            Updates a player status after their victory/defeat
-            """
+        Handle the game update
+        Updates a player status after their victory/defeat
+    """
     def handle_update_game(self, request):
         self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
 
@@ -219,10 +219,10 @@ class ServerReceiver:
         return {"type": Message.type_update_game.value}
 
     """
-               Handle the game finish
-               Updates a player status after their victory/defeat 
-               and updates the game status in the database
-               """
+        Handle the game finish
+        Updates a player status after their victory/defeat 
+        and updates the game status in the database
+    """
     def handle_finish_game(self, request):
         self.db_con.update_status(self.nick, ClientStatus.IDLE.value)
 
@@ -238,8 +238,8 @@ class ServerReceiver:
         return {"type": Message.type_finish_game.value}
 
     """
-    Main method to handle client menu interactions
-    Identify the selected option and redirects to the correct method
+        Main method to handle client menu interactions
+        Identify the selected option and redirects to the correct method
     """
     def handle_menu_lobby(self):
         # print("[%s] %s is connected to the Lobby Menu."%(self.name, self.address))
@@ -272,8 +272,8 @@ class ServerReceiver:
         return request
 
     """
-    Updates the client status after the connection
-    and closes the socket
+        Updates the client status after the connection
+        and closes the socket
     """
     def exit_connection(self):
         self.connection.close()

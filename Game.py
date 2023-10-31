@@ -55,7 +55,6 @@ class Game:
         else:
             request_to_server.update({"is_loser": False})
 
-        print(request_to_server)
         return request_to_server
 
     """
