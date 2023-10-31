@@ -10,6 +10,9 @@ from Message import Message
 
 
 class Game:
+    """
+        Class used to  handle the game logic
+        """
     def __init__(self, user):
         self.name = "FINGERS GAME"
         self.user = user
@@ -19,6 +22,11 @@ class Game:
         print("[%s] Lets start the game!" % self.name)
         print("TUTORIAL:\nShow a number from 0 to 10, if the counter stops on you, you are out of the game.")
 
+    """
+        Method used to handle the game as a player
+        this waits for the host messages (P2P connection)
+        to update the game stages till the end
+        """
     def handle_player(self, connection, buffer_size):
         print("[%s] Waiting for your turn." % self.name)
         request = pickle.loads(connection.recv(buffer_size))
@@ -50,6 +58,11 @@ class Game:
         print(request_to_server)
         return request_to_server
 
+    """
+            Method used to handle the game as a host
+            this sends messages for the players (P2P connection)
+            to update the game stages till the end
+            """
     def handle_host(self, sender_list, nickname_list):
         while len(nickname_list) > 1:
             fingers = [] if nickname_list[0] != self.user.nickname else [self.read_input()]
@@ -110,6 +123,9 @@ class Game:
     def print_victory(self):
         print("[%s] You won. Returning to the Lobby." % self.name)
 
+    """
+            Method used to handle player input in the game
+            """
     def read_input(self):
         run_read_input = True
         while run_read_input:

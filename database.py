@@ -18,6 +18,11 @@ class DataBase:
 
         self.__check_connection()
 
+    """
+            This method is called on the class initialization to
+            make sure the used tables are indeed created
+            if not, the tables are created
+            """
     def __check_connection(self):
         try:
             con = sqlite3.connect(self.db_path)
@@ -65,6 +70,11 @@ class DataBase:
                )''')
         print("[DATABASE] Table games created successfully")
 
+    """
+    Method used to fetch user data 
+    based on user nick (primary key)
+    if user not found None is returned
+    """
     def fetch_data(self, nick):
         user = None
         try:
@@ -87,6 +97,11 @@ class DataBase:
 
         return user
 
+    """
+    Method used to save (register) user data
+    If user already found or an error is catch returns success = False
+    else returns True
+    """
     def save_data(self, nick, username, password, status, ip, port):
         success = False
         try:
@@ -112,6 +127,11 @@ class DataBase:
                 con.close()
         return success
 
+    """
+       Method used to update user status
+       If an error is catch returns success = False
+       else returns True
+       """
     def update_status(self, nick, status):
         success = False
         try:
@@ -133,6 +153,11 @@ class DataBase:
 
         return success
 
+    """
+    Method used to update user status and connection info
+    If an error is catch returns success = False
+    else returns True
+    """
     def update_connection(self, nick, status, ip, port):
         success = False
         try:
@@ -152,24 +177,6 @@ class DataBase:
                 con.commit()
                 con.close()
 
-        return success
-
-    def delete_data(self, nick):
-        success = False
-        try:
-            con = sqlite3.connect(self.db_path)
-            cur = con.cursor()
-            delete = """DELETE FROM users WHERE nick = ?"""
-
-            cur.execute(delete, (nick,))
-            print("[%s] User %s data deleted successfully" % (self.name, nick))
-            success = True
-        except sqlite3.Error as error:
-            print("[%s] ERROR: Error deleting data from table users\n" % self.name, error)
-        finally:
-            if con:
-                con.commit()
-                con.close()
         return success
 
     def get_by_status(self, status, negated=False):
@@ -196,6 +203,11 @@ class DataBase:
 
         return users
 
+    """
+    Method used to create a game
+    If an error is catch returns success = False
+    else returns True
+    """
     def create_game(self, host, players):
         success = False
         try:
@@ -217,6 +229,11 @@ class DataBase:
 
         return success
 
+    """
+        Method used to update a game
+        If an error is catch returns success = False
+        else returns True
+        """
     def update_game(self, host, status, winner):
         success = False
         try:
